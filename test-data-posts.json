@@ -1,0 +1,367 @@
+[
+    {
+        "rendered_body": "<p><code>/api/</code>ではじまるURLをすべて<code>localhost:8080</code>で処理したい。</p>\n\n<div class=\"code-frame\" data-lang=\"text\"><div class=\"highlight\"><pre>location /api/ {\n    proxy_pass http://localhost:8080/;\n}\n</pre></div></div>\n\n<p><code>http://localhost/api/hoge/</code>にアクセスするも404。<br>\n<code>http://localhost:8080/api/hoge/</code>ではちゃんと結果が返ってくる。</p>\n\n<p><a href=\"http://www.xmisao.com/2014/05/09/nginx-proxy-pass.html\">ググった結果</a>解決。</p>\n\n<p><code>proxy_pass http://localhost:8080/;</code><br>\nと設定した場合、<br>\n<code>http://localhost:8080/hoge/</code>とアクセスされるようだ。<code>/api/</code>の部分が省略されてしまう。</p>\n\n<p><code>proxy_pass http://localhost:8080;</code><br>\nとすると（最後のスラッシュを消しただけ）、<br>\n<code>http://localhost:8080/api/hoge/</code>に正しくアクセスされた。</p>\n\n<p>軽くハマったのでメモ。</p>\n",
+        "body": "\n\n`/api/`ではじまるURLをすべて`localhost:8080`で処理したい。\n\n```\nlocation /api/ {\n    proxy_pass http://localhost:8080/;\n}\n```\n\n`http://localhost/api/hoge/`にアクセスするも404。\n`http://localhost:8080/api/hoge/`ではちゃんと結果が返ってくる。\n\n[ググった結果](http://www.xmisao.com/2014/05/09/nginx-proxy-pass.html)解決。\n\n`proxy_pass http://localhost:8080/;`\nと設定した場合、\n`http://localhost:8080/hoge/`とアクセスされるようだ。`/api/`の部分が省略されてしまう。\n\n`proxy_pass http://localhost:8080;`\nとすると（最後のスラッシュを消しただけ）、\n`http://localhost:8080/api/hoge/`に正しくアクセスされた。\n\n軽くハマったのでメモ。\n",
+        "coediting": false,
+        "created_at": "2015-07-22T19:27:11+09:00",
+        "id": "6dc7c03a1f600c1ec24a",
+        "private": false,
+        "tags": [
+            {
+                "name": "nginx",
+                "versions": [
+                ]
+            }
+        ],
+        "title": "nginxのproxy_passでハマった",
+        "updated_at": "2015-07-22T19:27:11+09:00",
+        "url": "http://qiita.com/master-of-sugar/items/6dc7c03a1f600c1ec24a",
+        "user": {
+            "description": "元トラックドライバー -> エンジニア\r\n\r\n基本的にはJavaの人ですが、何でもやります。\r\n基本的にはSIの人ですが、最近色々はじめてます。",
+            "facebook_id": "",
+            "followees_count": 1,
+            "followers_count": 0,
+            "github_login_name": "master-of-sugar",
+            "id": "master-of-sugar",
+            "items_count": 9,
+            "linkedin_id": "",
+            "location": "",
+            "name": "",
+            "organization": "",
+            "permanent_id": 10058,
+            "profile_image_url": "https://pbs.twimg.com/profile_images/608602939523911680/V0yOIpQk_normal.png",
+            "twitter_screen_name": "master_of_sugar",
+            "website_url": ""
+        }
+    },
+    {
+        "rendered_body": "<p><code>DB2</code>を使うプロジェクトで開発時は<code>h2</code>をDB2モードにしてやっていたりするのだが、どうしても対応していないSQLがでてきたりする。<br>\nローカルマシンに入れるのも嫌だし、専用PC用意するのも嫌なので<code>Docker</code>でやってみた。</p>\n\n<h2>\n<span id=\"準備\" class=\"fragment\"></span><a href=\"#%E6%BA%96%E5%82%99\"><i class=\"fa fa-link\"></i></a>準備</h2>\n\n<p><a href=\"http://qiita.com/master-of-sugar/items/885ea7a4592671b1a72a\">MacでDockerはじめました</a>を参考に準備する。</p>\n\n<h2>\n<span id=\"db2-express-cインストール済のイメージを取得する\" class=\"fragment\"></span><a href=\"#db2-express-c%E3%82%A4%E3%83%B3%E3%82%B9%E3%83%88%E3%83%BC%E3%83%AB%E6%B8%88%E3%81%AE%E3%82%A4%E3%83%A1%E3%83%BC%E3%82%B8%E3%82%92%E5%8F%96%E5%BE%97%E3%81%99%E3%82%8B\"><i class=\"fa fa-link\"></i></a>DB2 Express-Cインストール済のイメージを取得する</h2>\n\n<p>イチからインストールするのも面倒なので<a href=\"https://registry.hub.docker.com/u/angoca/db2-instance/\">これ</a>を使わせていただく。</p>\n\n<div class=\"code-frame\" data-lang=\"text\"><div class=\"highlight\"><pre>docker pull angoca/db2-instance\n</pre></div></div>\n\n<h2>\n<span id=\"起動する\" class=\"fragment\"></span><a href=\"#%E8%B5%B7%E5%8B%95%E3%81%99%E3%82%8B\"><i class=\"fa fa-link\"></i></a>起動する</h2>\n\n<div class=\"code-frame\" data-lang=\"text\"><div class=\"highlight\"><pre>docker run -i -t --privileged=true --name=\"db2inst1\" -p 50000:50000 angoca/db2-instance\n</pre></div></div>\n\n<p><code>ssh</code>で<code>root</code>ユーザーでログインした状態になる。</p>\n\n<h2>\n<span id=\"インスタンスを作成する\" class=\"fragment\"></span><a href=\"#%E3%82%A4%E3%83%B3%E3%82%B9%E3%82%BF%E3%83%B3%E3%82%B9%E3%82%92%E4%BD%9C%E6%88%90%E3%81%99%E3%82%8B\"><i class=\"fa fa-link\"></i></a>インスタンスを作成する</h2>\n\n<p><code>ssh</code>でログインすると<code>/tmp/db2_conf</code>にいる状態になっているはず。そのディレクトリに<code>createInstance</code>というファイルがあるので実行する。</p>\n\n<div class=\"code-frame\" data-lang=\"text\"><div class=\"highlight\"><pre>./createInstance\n</pre></div></div>\n\n<p><code>db2inst1</code>というインスタンスが作成され、<code>db2inst1</code>ユーザーになる。<br>\n<code>DB2</code>コマンドを確認してみる。</p>\n\n<div class=\"code-frame\" data-lang=\"text\"><div class=\"highlight\"><pre>db2 list db directory\n</pre></div></div>\n\n<p>以下のような結果になればOK</p>\n\n<div class=\"code-frame\" data-lang=\"text\"><div class=\"highlight\"><pre>SQL1031N  The database directory cannot be found on the indicated file system. \nSQLSTATE=58031\n</pre></div></div>\n\n<h2>\n<span id=\"日本語を使えるように設定する\" class=\"fragment\"></span><a href=\"#%E6%97%A5%E6%9C%AC%E8%AA%9E%E3%82%92%E4%BD%BF%E3%81%88%E3%82%8B%E3%82%88%E3%81%86%E3%81%AB%E8%A8%AD%E5%AE%9A%E3%81%99%E3%82%8B\"><i class=\"fa fa-link\"></i></a>日本語を使えるように設定する</h2>\n\n<p>このイメージはデフォルトでは日本語が使えないので設定する。この作業は<code>root</code>ユーザーで行う。</p>\n\n<p>まずは現在の設定を試してみる。</p>\n\n<div class=\"code-frame\" data-lang=\"text\"><div class=\"highlight\"><pre>echo $LANG\n</pre></div></div>\n\n<p>なにもでないはず。<br>\n以下を実行する。</p>\n\n<div class=\"code-frame\" data-lang=\"text\"><div class=\"highlight\"><pre>sudo locale-gen ja_JP.UTF-8\nsudo /usr/sbin/update-locale LANG=ja_JP.UTF-8\nsource /etc/default/locale \n</pre></div></div>\n\n<p>設定がうまくいったかどうか試す。</p>\n\n<div class=\"code-frame\" data-lang=\"text\"><div class=\"highlight\"><pre>echo $LANG\n</pre></div></div>\n\n<p>以下のような結果になればOK</p>\n\n<div class=\"code-frame\" data-lang=\"text\"><div class=\"highlight\"><pre>ja_JP.UTF-8\n</pre></div></div>\n\n<h2>\n<span id=\"ホストマシンからアクセスしてみる\" class=\"fragment\"></span><a href=\"#%E3%83%9B%E3%82%B9%E3%83%88%E3%83%9E%E3%82%B7%E3%83%B3%E3%81%8B%E3%82%89%E3%82%A2%E3%82%AF%E3%82%BB%E3%82%B9%E3%81%97%E3%81%A6%E3%81%BF%E3%82%8B\"><i class=\"fa fa-link\"></i></a>ホストマシンからアクセスしてみる</h2>\n\n<p>IPを確認</p>\n\n<div class=\"code-frame\" data-lang=\"text\"><div class=\"highlight\"><pre>boot2docker ip\n</pre></div></div>\n\n<p>[ip:50000]でアクセスできる。<br>\nあとは<code>create database</code>したりすればOK。</p>\n\n<h2>\n<span id=\"tips\" class=\"fragment\"></span><a href=\"#tips\"><i class=\"fa fa-link\"></i></a>Tips</h2>\n\n<h3>\n<span id=\"sshから抜ける\" class=\"fragment\"></span><a href=\"#ssh%E3%81%8B%E3%82%89%E6%8A%9C%E3%81%91%E3%82%8B\"><i class=\"fa fa-link\"></i></a>SSHから抜ける</h3>\n\n<p><code>ctrl + P + Q</code>で抜ける。<code>exit</code>で抜けると<code>docker</code>コンテナが終了してしまう。</p>\n\n<h3>\n<span id=\"コンテナを起動\" class=\"fragment\"></span><a href=\"#%E3%82%B3%E3%83%B3%E3%83%86%E3%83%8A%E3%82%92%E8%B5%B7%E5%8B%95\"><i class=\"fa fa-link\"></i></a>コンテナを起動</h3>\n\n<p><code>docker start db2inst1</code></p>\n\n<h3>\n<span id=\"sshで入る\" class=\"fragment\"></span><a href=\"#ssh%E3%81%A7%E5%85%A5%E3%82%8B\"><i class=\"fa fa-link\"></i></a>SSHで入る</h3>\n\n<p><code>docker attach db2inst1</code></p>\n\n<h2>\n<span id=\"todo\" class=\"fragment\"></span><a href=\"#todo\"><i class=\"fa fa-link\"></i></a>TODO</h2>\n\n<p>一連の流れを<code>Dockerfile</code>にしたい。</p>\n",
+        "body": "\n`DB2`を使うプロジェクトで開発時は`h2`をDB2モードにしてやっていたりするのだが、どうしても対応していないSQLがでてきたりする。\nローカルマシンに入れるのも嫌だし、専用PC用意するのも嫌なので`Docker`でやってみた。\n\n##準備\n[MacでDockerはじめました](http://qiita.com/master-of-sugar/items/885ea7a4592671b1a72a)を参考に準備する。\n\n##DB2 Express-Cインストール済のイメージを取得する\nイチからインストールするのも面倒なので[これ](https://registry.hub.docker.com/u/angoca/db2-instance/)を使わせていただく。\n\n```\ndocker pull angoca/db2-instance\n```\n\n##起動する\n\n```\ndocker run -i -t --privileged=true --name=\"db2inst1\" -p 50000:50000 angoca/db2-instance\n```\n\n`ssh`で`root`ユーザーでログインした状態になる。\n\n##インスタンスを作成する\n`ssh`でログインすると`/tmp/db2_conf`にいる状態になっているはず。そのディレクトリに`createInstance`というファイルがあるので実行する。\n\n```\n./createInstance\n```\n\n`db2inst1`というインスタンスが作成され、`db2inst1`ユーザーになる。\n`DB2`コマンドを確認してみる。\n\n```\ndb2 list db directory\n```\n\n以下のような結果になればOK\n\n```\nSQL1031N  The database directory cannot be found on the indicated file system. \nSQLSTATE=58031\n```\n\n\n##日本語を使えるように設定する\nこのイメージはデフォルトでは日本語が使えないので設定する。この作業は`root`ユーザーで行う。\n\nまずは現在の設定を試してみる。\n\n```\necho $LANG\n```\n\nなにもでないはず。\n以下を実行する。\n\n```\nsudo locale-gen ja_JP.UTF-8\nsudo /usr/sbin/update-locale LANG=ja_JP.UTF-8\nsource /etc/default/locale \n```\n\n設定がうまくいったかどうか試す。\n\n```\necho $LANG\n```\n\n以下のような結果になればOK\n\n```\nja_JP.UTF-8\n```\n\n##ホストマシンからアクセスしてみる\nIPを確認\n\n```\nboot2docker ip\n```\n\n[ip:50000]でアクセスできる。\nあとは`create database`したりすればOK。\n\n##Tips\n###SSHから抜ける\n`ctrl + P + Q`で抜ける。`exit`で抜けると`docker`コンテナが終了してしまう。\n\n###コンテナを起動\n`docker start db2inst1`\n\n###SSHで入る\n`docker attach db2inst1`\n\n\n##TODO\n一連の流れを`Dockerfile`にしたい。\n",
+        "coediting": false,
+        "created_at": "2015-07-07T18:45:54+09:00",
+        "id": "764c6fcaf185ad73172e",
+        "private": false,
+        "tags": [
+            {
+                "name": "db2",
+                "versions": [
+                ]
+            },
+            {
+                "name": "docker",
+                "versions": [
+                ]
+            }
+        ],
+        "title": "DockerでDB2 Express-Cの環境を作る",
+        "updated_at": "2015-07-17T10:59:25+09:00",
+        "url": "http://qiita.com/master-of-sugar/items/764c6fcaf185ad73172e",
+        "user": {
+            "description": "元トラックドライバー -> エンジニア\r\n\r\n基本的にはJavaの人ですが、何でもやります。\r\n基本的にはSIの人ですが、最近色々はじめてます。",
+            "facebook_id": "",
+            "followees_count": 1,
+            "followers_count": 0,
+            "github_login_name": "master-of-sugar",
+            "id": "master-of-sugar",
+            "items_count": 9,
+            "linkedin_id": "",
+            "location": "",
+            "name": "",
+            "organization": "",
+            "permanent_id": 10058,
+            "profile_image_url": "https://pbs.twimg.com/profile_images/608602939523911680/V0yOIpQk_normal.png",
+            "twitter_screen_name": "master_of_sugar",
+            "website_url": ""
+        }
+    },
+    {
+        "rendered_body": "\n<h2>\n<span id=\"前提\" class=\"fragment\"></span><a href=\"#%E5%89%8D%E6%8F%90\"><i class=\"fa fa-link\"></i></a>前提</h2>\n\n<ul>\n<li>Mac OS X</li>\n<li><a href=\"https://www.virtualbox.org/wiki/Downloads\">VirtualBox</a></li>\n</ul>\n\n<h2>\n<span id=\"準備\" class=\"fragment\"></span><a href=\"#%E6%BA%96%E5%82%99\"><i class=\"fa fa-link\"></i></a>準備</h2>\n\n<p><code>Docker</code>と<code>boot2docker</code>をいれる。</p>\n\n<div class=\"code-frame\" data-lang=\"text\"><div class=\"highlight\"><pre>brew install boot2docker\n</pre></div></div>\n\n<p>dockerも一緒にはいる。</p>\n\n<h3>\n<span id=\"boot2dockerイメージを取得する\" class=\"fragment\"></span><a href=\"#boot2docker%E3%82%A4%E3%83%A1%E3%83%BC%E3%82%B8%E3%82%92%E5%8F%96%E5%BE%97%E3%81%99%E3%82%8B\"><i class=\"fa fa-link\"></i></a>boot2dockerイメージを取得する</h3>\n\n<div class=\"code-frame\" data-lang=\"text\"><div class=\"highlight\"><pre>boot2docker init\n</pre></div></div>\n\n<p><code>~/.boot2docker/boot2docker.iso</code>というファイルがダウンロードされる。</p>\n\n<h3>\n<span id=\"boot2dockerを起動する\" class=\"fragment\"></span><a href=\"#boot2docker%E3%82%92%E8%B5%B7%E5%8B%95%E3%81%99%E3%82%8B\"><i class=\"fa fa-link\"></i></a>boot2dockerを起動する</h3>\n\n<div class=\"code-frame\" data-lang=\"text\"><div class=\"highlight\"><pre>boot2docker start\n</pre></div></div>\n\n<div class=\"code-frame\" data-lang=\"text\"><div class=\"highlight\"><pre>Writing /Users/mary/.boot2docker/certs/boot2docker-vm/ca.pem\nWriting /Users/mary/.boot2docker/certs/boot2docker-vm/cert.pem\nWriting /Users/mary/.boot2docker/certs/boot2docker-vm/key.pem\n    export DOCKER_HOST=tcp://192.168.59.103:2376\n    export DOCKER_CERT_PATH=/Users/mary/.boot2docker/certs/boot2docker-vm\n    export DOCKER_TLS_VERIFY=1\n</pre></div></div>\n\n<p>こんな感じのが出力されるので<code>export</code>を実行する。<br>\nこれは<code>docker</code>クライアントが認識して<code>docker</code>サーバーの場所等を認識するための環境変数らしい。</p>\n\n<h3>\n<span id=\"dockerコンテナに接続できるかどうか確認する\" class=\"fragment\"></span><a href=\"#docker%E3%82%B3%E3%83%B3%E3%83%86%E3%83%8A%E3%81%AB%E6%8E%A5%E7%B6%9A%E3%81%A7%E3%81%8D%E3%82%8B%E3%81%8B%E3%81%A9%E3%81%86%E3%81%8B%E7%A2%BA%E8%AA%8D%E3%81%99%E3%82%8B\"><i class=\"fa fa-link\"></i></a>dockerコンテナに接続できるかどうか確認する。</h3>\n\n<div class=\"code-frame\" data-lang=\"text\"><div class=\"highlight\"><pre>docker version\n</pre></div></div>\n\n<div class=\"code-frame\" data-lang=\"text\"><div class=\"highlight\"><pre>Client version: 1.5.0\nClient API version: 1.17\nGo version (client): go1.4.1\nGit commit (client): a8a31ef\nOS/Arch (client): darwin/amd64\nServer version: 1.7.0\nServer API version: 1.19\nGo version (server): go1.4.2\nGit commit (server): 0baf609\n</pre></div></div>\n\n<p>こんな感じでServer部分の情報までとれたら成功。とれなかったら環境変数が設定されていないのかもしれない。</p>\n\n<h2>\n<span id=\"nginxイメージを入れてmacからアクセスしてみる\" class=\"fragment\"></span><a href=\"#nginx%E3%82%A4%E3%83%A1%E3%83%BC%E3%82%B8%E3%82%92%E5%85%A5%E3%82%8C%E3%81%A6mac%E3%81%8B%E3%82%89%E3%82%A2%E3%82%AF%E3%82%BB%E3%82%B9%E3%81%97%E3%81%A6%E3%81%BF%E3%82%8B\"><i class=\"fa fa-link\"></i></a>Nginxイメージを入れてMacからアクセスしてみる</h2>\n\n<p><a href=\"https://docs.docker.com/installation/mac/\">公式ドキュメント</a>を見ながらやってみる。</p>\n\n<h3>\n<span id=\"dockerコンテナ起動\" class=\"fragment\"></span><a href=\"#docker%E3%82%B3%E3%83%B3%E3%83%86%E3%83%8A%E8%B5%B7%E5%8B%95\"><i class=\"fa fa-link\"></i></a>dockerコンテナ起動</h3>\n\n<div class=\"code-frame\" data-lang=\"text\"><div class=\"highlight\"><pre>docker run -d -P --name web nginx\n</pre></div></div>\n\n<p>「nginxというコンテナにwebという名前をつけてポートを公開しつつバックグラウンドで実行する」という意味。</p>\n\n<h3>\n<span id=\"起動したかどうか確認\" class=\"fragment\"></span><a href=\"#%E8%B5%B7%E5%8B%95%E3%81%97%E3%81%9F%E3%81%8B%E3%81%A9%E3%81%86%E3%81%8B%E7%A2%BA%E8%AA%8D\"><i class=\"fa fa-link\"></i></a>起動したかどうか確認</h3>\n\n<div class=\"code-frame\" data-lang=\"text\"><div class=\"highlight\"><pre>docker ps\n</pre></div></div>\n\n<div class=\"code-frame\" data-lang=\"text\"><div class=\"highlight\"><pre>CONTAINER ID        IMAGE               COMMAND                CREATED             STATUS              PORTS                                           NAMES\n9f30c1a61580        nginx               \"nginx -g 'daemon of   3 minutes ago       Up 3 minutes        0.0.0.0:32768-&gt;443/tcp, 0.0.0.0:32769-&gt;80/tcp   web   \n</pre></div></div>\n\n<h3>\n<span id=\"ポートが公開されたかどうか確認\" class=\"fragment\"></span><a href=\"#%E3%83%9D%E3%83%BC%E3%83%88%E3%81%8C%E5%85%AC%E9%96%8B%E3%81%95%E3%82%8C%E3%81%9F%E3%81%8B%E3%81%A9%E3%81%86%E3%81%8B%E7%A2%BA%E8%AA%8D\"><i class=\"fa fa-link\"></i></a>ポートが公開されたかどうか確認</h3>\n\n<div class=\"code-frame\" data-lang=\"text\"><div class=\"highlight\"><pre>docker port web\n</pre></div></div>\n\n<div class=\"code-frame\" data-lang=\"text\"><div class=\"highlight\"><pre>443/tcp -&gt; 0.0.0.0:32768\n80/tcp -&gt; 0.0.0.0:32769\n</pre></div></div>\n\n<h3>\n<span id=\"ipを確認\" class=\"fragment\"></span><a href=\"#ip%E3%82%92%E7%A2%BA%E8%AA%8D\"><i class=\"fa fa-link\"></i></a>IPを確認</h3>\n\n<div class=\"code-frame\" data-lang=\"text\"><div class=\"highlight\"><pre>boot2docker ip\n</pre></div></div>\n\n<div class=\"code-frame\" data-lang=\"text\"><div class=\"highlight\"><pre>192.168.59.104\n</pre></div></div>\n\n<p>ここは環境によって違うので読み替えを。</p>\n\n<h3>\n<span id=\"macのブラウザからアクセスしてみる\" class=\"fragment\"></span><a href=\"#mac%E3%81%AE%E3%83%96%E3%83%A9%E3%82%A6%E3%82%B6%E3%81%8B%E3%82%89%E3%82%A2%E3%82%AF%E3%82%BB%E3%82%B9%E3%81%97%E3%81%A6%E3%81%BF%E3%82%8B\"><i class=\"fa fa-link\"></i></a>Macのブラウザからアクセスしてみる</h3>\n\n<div class=\"code-frame\" data-lang=\"text\"><div class=\"highlight\"><pre>http://192.168.59.104:32769/\n</pre></div></div>\n\n<p><img src=\"https://qiita-image-store.s3.amazonaws.com/0/10058/a88f73d9-d500-58e1-7062-2d6e67020648.png\" alt=\"Screen Shot 2015-07-03 at 17.49.00.png\" title=\"Screen Shot 2015-07-03 at 17.49.00.png\"></p>\n\n<p>成功！！</p>\n\n<h3>\n<span id=\"コンテナ停止\" class=\"fragment\"></span><a href=\"#%E3%82%B3%E3%83%B3%E3%83%86%E3%83%8A%E5%81%9C%E6%AD%A2\"><i class=\"fa fa-link\"></i></a>コンテナ停止</h3>\n\n<div class=\"code-frame\" data-lang=\"text\"><div class=\"highlight\"><pre>docker stop web\ndocker ps\n</pre></div></div>\n\n<div class=\"code-frame\" data-lang=\"text\"><div class=\"highlight\"><pre>CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS               NAMES\n</pre></div></div>\n\n<h2>\n<span id=\"本当にやりたかったこと\" class=\"fragment\"></span><a href=\"#%E6%9C%AC%E5%BD%93%E3%81%AB%E3%82%84%E3%82%8A%E3%81%9F%E3%81%8B%E3%81%A3%E3%81%9F%E3%81%93%E3%81%A8\"><i class=\"fa fa-link\"></i></a>本当にやりたかったこと</h2>\n\n<p><a href=\"http://qiita.com/master-of-sugar/items/764c6fcaf185ad73172e\">続き</a>かきました。</p>\n",
+        "body": "\n##前提\n - Mac OS X\n - [VirtualBox](https://www.virtualbox.org/wiki/Downloads)\n\n##準備\n`Docker`と`boot2docker`をいれる。\n\n```\nbrew install boot2docker\n```\n\ndockerも一緒にはいる。\n\n###boot2dockerイメージを取得する\n```\nboot2docker init\n```\n\n`~/.boot2docker/boot2docker.iso`というファイルがダウンロードされる。\n\n###boot2dockerを起動する\n```\nboot2docker start\n```\n\n```\nWriting /Users/mary/.boot2docker/certs/boot2docker-vm/ca.pem\nWriting /Users/mary/.boot2docker/certs/boot2docker-vm/cert.pem\nWriting /Users/mary/.boot2docker/certs/boot2docker-vm/key.pem\n    export DOCKER_HOST=tcp://192.168.59.103:2376\n    export DOCKER_CERT_PATH=/Users/mary/.boot2docker/certs/boot2docker-vm\n    export DOCKER_TLS_VERIFY=1\n```\n\nこんな感じのが出力されるので`export`を実行する。\nこれは`docker`クライアントが認識して`docker`サーバーの場所等を認識するための環境変数らしい。\n\n###dockerコンテナに接続できるかどうか確認する。\n```\ndocker version\n```\n\n```\nClient version: 1.5.0\nClient API version: 1.17\nGo version (client): go1.4.1\nGit commit (client): a8a31ef\nOS/Arch (client): darwin/amd64\nServer version: 1.7.0\nServer API version: 1.19\nGo version (server): go1.4.2\nGit commit (server): 0baf609\n```\n\nこんな感じでServer部分の情報までとれたら成功。とれなかったら環境変数が設定されていないのかもしれない。\n\n##Nginxイメージを入れてMacからアクセスしてみる\n\n[公式ドキュメント](https://docs.docker.com/installation/mac/)を見ながらやってみる。\n\n\n###dockerコンテナ起動\n```\ndocker run -d -P --name web nginx\n```\n「nginxというコンテナにwebという名前をつけてポートを公開しつつバックグラウンドで実行する」という意味。\n\n###起動したかどうか確認\n```\ndocker ps\n```\n\n```\nCONTAINER ID        IMAGE               COMMAND                CREATED             STATUS              PORTS                                           NAMES\n9f30c1a61580        nginx               \"nginx -g 'daemon of   3 minutes ago       Up 3 minutes        0.0.0.0:32768->443/tcp, 0.0.0.0:32769->80/tcp   web   \n```\n###ポートが公開されたかどうか確認\n\n```\ndocker port web\n``` \n\n```\n443/tcp -> 0.0.0.0:32768\n80/tcp -> 0.0.0.0:32769\n```\n\n###IPを確認\n```\nboot2docker ip\n```\n\n```\n192.168.59.104\n```\nここは環境によって違うので読み替えを。\n\n###Macのブラウザからアクセスしてみる\n```\nhttp://192.168.59.104:32769/\n```\n\n![Screen Shot 2015-07-03 at 17.49.00.png](https://qiita-image-store.s3.amazonaws.com/0/10058/a88f73d9-d500-58e1-7062-2d6e67020648.png \"Screen Shot 2015-07-03 at 17.49.00.png\")\n\n\n成功！！\n\n###コンテナ停止\n```\ndocker stop web\ndocker ps\n```\n\n```\nCONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS               NAMES\n```\n\n\n\n##本当にやりたかったこと\n[続き](http://qiita.com/master-of-sugar/items/764c6fcaf185ad73172e)かきました。\n",
+        "coediting": false,
+        "created_at": "2015-07-07T18:45:06+09:00",
+        "id": "885ea7a4592671b1a72a",
+        "private": false,
+        "tags": [
+            {
+                "name": "docker",
+                "versions": [
+                ]
+            }
+        ],
+        "title": "MacでDockerはじめました",
+        "updated_at": "2015-07-07T18:46:49+09:00",
+        "url": "http://qiita.com/master-of-sugar/items/885ea7a4592671b1a72a",
+        "user": {
+            "description": "元トラックドライバー -> エンジニア\r\n\r\n基本的にはJavaの人ですが、何でもやります。\r\n基本的にはSIの人ですが、最近色々はじめてます。",
+            "facebook_id": "",
+            "followees_count": 1,
+            "followers_count": 0,
+            "github_login_name": "master-of-sugar",
+            "id": "master-of-sugar",
+            "items_count": 9,
+            "linkedin_id": "",
+            "location": "",
+            "name": "",
+            "organization": "",
+            "permanent_id": 10058,
+            "profile_image_url": "https://pbs.twimg.com/profile_images/608602939523911680/V0yOIpQk_normal.png",
+            "twitter_screen_name": "master_of_sugar",
+            "website_url": ""
+        }
+    },
+    {
+        "rendered_body": "<p><code>Redis</code>をいじくり倒してパフォーマンス検証することになったので環境構築してみる。</p>\n\n<h2>\n<span id=\"必要なもの\" class=\"fragment\"></span><a href=\"#%E5%BF%85%E8%A6%81%E3%81%AA%E3%82%82%E3%81%AE\"><i class=\"fa fa-link\"></i></a>必要なもの</h2>\n\n<ul>\n<li>Vagrant</li>\n<li>VirtualBox</li>\n<li>Ansible</li>\n</ul>\n\n<h2>\n<span id=\"準備\" class=\"fragment\"></span><a href=\"#%E6%BA%96%E5%82%99\"><i class=\"fa fa-link\"></i></a>準備</h2>\n\n<h3>\n<span id=\"vagrantをいれる\" class=\"fragment\"></span><a href=\"#vagrant%E3%82%92%E3%81%84%E3%82%8C%E3%82%8B\"><i class=\"fa fa-link\"></i></a>Vagrantをいれる</h3>\n\n<p><a href=\"https://www.vagrantup.com/\">ここ</a>からダウンロードしていれる。</p>\n\n<h3>\n<span id=\"virtualboxをいれる\" class=\"fragment\"></span><a href=\"#virtualbox%E3%82%92%E3%81%84%E3%82%8C%E3%82%8B\"><i class=\"fa fa-link\"></i></a>VirtualBoxをいれる</h3>\n\n<p><a href=\"https://www.virtualbox.org/wiki/Downloads\">ここ</a>からダウンロードしていれる。</p>\n\n<h3>\n<span id=\"ansibleをいれる\" class=\"fragment\"></span><a href=\"#ansible%E3%82%92%E3%81%84%E3%82%8C%E3%82%8B\"><i class=\"fa fa-link\"></i></a>Ansibleをいれる</h3>\n\n<div class=\"code-frame\" data-lang=\"text\"><div class=\"highlight\"><pre>brew install ansible\n</pre></div></div>\n\n<h2>\n<span id=\"vagrantのboxを追加する\" class=\"fragment\"></span><a href=\"#vagrant%E3%81%AEbox%E3%82%92%E8%BF%BD%E5%8A%A0%E3%81%99%E3%82%8B\"><i class=\"fa fa-link\"></i></a>VagrantのBOXを追加する</h2>\n\n<p>今回はCentOS 7をいれる。</p>\n\n<div class=\"code-frame\" data-lang=\"text\"><div class=\"highlight\"><pre>vagrant box add cent7 https://github.com/holms/vagrant-centos7-box/releases/download/7.1.1503.001/CentOS-7.1.1503-x86_64-netboot.box\n</pre></div></div>\n\n<p>適当なディレクトリを作成し、移動する。</p>\n\n<div class=\"code-frame\" data-lang=\"text\"><div class=\"highlight\"><pre>mkdir hoge\ncd hoge\n</pre></div></div>\n\n<p>Vagrant初期化。</p>\n\n<div class=\"code-frame\" data-lang=\"text\"><div class=\"highlight\"><pre>vagrant init cent7\n</pre></div></div>\n\n<p><code>Vagrantfile</code>ができるので以下のコメントアウトを外す。</p>\n\n<div class=\"code-frame\" data-lang=\"Vagrantfile\"><div class=\"highlight\"><pre>config.vm.network \"private_network\", ip: \"192.168.33.10\"\n</pre></div></div>\n\n<p>Virtual Machineを起動する。</p>\n\n<div class=\"code-frame\" data-lang=\"text\"><div class=\"highlight\"><pre>vagrant up\n</pre></div></div>\n\n<p><code>vagrant ssh</code>でもログインできるが、<code>Vagrantfile</code>で指定したipでログインできるかどうか試してみる。パスワードは<code>vagrant</code>。</p>\n\n<div class=\"code-frame\" data-lang=\"text\"><div class=\"highlight\"><pre>ssh vagrant@192.168.10.33\n</pre></div></div>\n\n<h2>\n<span id=\"ansibleの設定をする\" class=\"fragment\"></span><a href=\"#ansible%E3%81%AE%E8%A8%AD%E5%AE%9A%E3%82%92%E3%81%99%E3%82%8B\"><i class=\"fa fa-link\"></i></a>Ansibleの設定をする</h2>\n\n<p>inventory fileを作成する。ファイル名は適当に。</p>\n\n<div class=\"code-frame\" data-lang=\"hosts\"><div class=\"highlight\"><pre>[test-server]\n192.168.33.10\n\n[all:vars]\nansible_ssh_port=22\nansible_ssh_user=vagrant \nansible_ssh_pass=vagrant\nansible_sudo_pass=vagrant\nansible_connection=paramiko\n</pre></div></div>\n\n<p><code>ansible_connection=paramiko</code>を指定しないとうまいことsshでログインできないので注意。</p>\n\n<p>Playbookを作る。ファイル名は適当に。</p>\n\n<div class=\"code-frame\" data-lang=\"yaml\">\n<div class=\"code-lang\"><span class=\"bold\">playbook.yml</span></div>\n<div class=\"highlight\"><pre><span class=\"nn\">---</span>\n<span class=\"p-Indicator\">-</span> <span class=\"l-Scalar-Plain\">hosts</span><span class=\"p-Indicator\">:</span> <span class=\"l-Scalar-Plain\">test-server</span>\n  <span class=\"l-Scalar-Plain\">sudo</span><span class=\"p-Indicator\">:</span> <span class=\"l-Scalar-Plain\">yes</span>\n  <span class=\"l-Scalar-Plain\">tasks</span><span class=\"p-Indicator\">:</span>\n    <span class=\"p-Indicator\">-</span> <span class=\"l-Scalar-Plain\">name</span><span class=\"p-Indicator\">:</span> <span class=\"l-Scalar-Plain\">libselinux-python install</span>\n      <span class=\"l-Scalar-Plain\">yum</span><span class=\"p-Indicator\">:</span> <span class=\"l-Scalar-Plain\">name=libselinux-python state=latest</span>\n    <span class=\"p-Indicator\">-</span> <span class=\"l-Scalar-Plain\">name</span><span class=\"p-Indicator\">:</span> <span class=\"l-Scalar-Plain\">gcc install</span>\n      <span class=\"l-Scalar-Plain\">yum</span><span class=\"p-Indicator\">:</span> <span class=\"l-Scalar-Plain\">name=gcc state=latest</span>\n    <span class=\"p-Indicator\">-</span> <span class=\"l-Scalar-Plain\">name</span><span class=\"p-Indicator\">:</span> <span class=\"l-Scalar-Plain\">redis source download</span>\n      <span class=\"l-Scalar-Plain\">get_url</span><span class=\"p-Indicator\">:</span> <span class=\"p-Indicator\">&gt;</span>\n        <span class=\"no\">url=http://download.redis.io/releases/redis-2.8.19.tar.gz</span>\n        <span class=\"no\">dest=/tmp/redis-2.8.19.tar.gz</span>\n    <span class=\"p-Indicator\">-</span> <span class=\"l-Scalar-Plain\">name</span><span class=\"p-Indicator\">:</span> <span class=\"l-Scalar-Plain\">redis unarchive</span>\n      <span class=\"l-Scalar-Plain\">command</span><span class=\"p-Indicator\">:</span> <span class=\"p-Indicator\">&gt;</span>\n        <span class=\"no\">tar zxvf redis-2.8.19.tar.gz</span>\n        <span class=\"no\">chdir=/tmp/</span>\n    <span class=\"p-Indicator\">-</span> <span class=\"l-Scalar-Plain\">name</span><span class=\"p-Indicator\">:</span> <span class=\"l-Scalar-Plain\">make</span>\n      <span class=\"l-Scalar-Plain\">command</span><span class=\"p-Indicator\">:</span> <span class=\"p-Indicator\">&gt;</span>\n        <span class=\"no\">make</span>\n        <span class=\"no\">chdir=/tmp/redis-2.8.19</span>\n    <span class=\"p-Indicator\">-</span> <span class=\"l-Scalar-Plain\">name</span><span class=\"p-Indicator\">:</span> <span class=\"l-Scalar-Plain\">make install</span>\n      <span class=\"l-Scalar-Plain\">command</span><span class=\"p-Indicator\">:</span> <span class=\"p-Indicator\">&gt;</span>\n        <span class=\"no\">make install</span>\n        <span class=\"no\">chdir=/tmp/redis-2.8.19</span>\n    <span class=\"p-Indicator\">-</span> <span class=\"l-Scalar-Plain\">name</span><span class=\"p-Indicator\">:</span> <span class=\"l-Scalar-Plain\">deamonize on</span>\n      <span class=\"l-Scalar-Plain\">replace</span><span class=\"p-Indicator\">:</span> <span class=\"p-Indicator\">&gt;</span>\n        <span class=\"no\">dest=/tmp/redis-2.8.19/redis.conf</span>\n        <span class=\"no\">regexp='daemonize no'</span>\n        <span class=\"no\">replace='daemonize yes'</span>\n    <span class=\"p-Indicator\">-</span> <span class=\"l-Scalar-Plain\">name</span><span class=\"p-Indicator\">:</span> <span class=\"l-Scalar-Plain\">redis.conf copy</span>\n      <span class=\"l-Scalar-Plain\">shell</span><span class=\"p-Indicator\">:</span> <span class=\"l-Scalar-Plain\">creates=/etc/redis.conf cp /tmp/redis-2.8.19/redis.conf /etc/redis.conf</span>\n    <span class=\"p-Indicator\">-</span> <span class=\"l-Scalar-Plain\">name</span><span class=\"p-Indicator\">:</span> <span class=\"l-Scalar-Plain\">redis start</span>\n      <span class=\"l-Scalar-Plain\">command</span><span class=\"p-Indicator\">:</span> <span class=\"p-Indicator\">&gt;</span>\n        <span class=\"no\">redis-server /etc/redis.conf</span>\n      <span class=\"l-Scalar-Plain\">sudo</span><span class=\"p-Indicator\">:</span> <span class=\"l-Scalar-Plain\">no</span>\n</pre></div>\n</div>\n\n<h2>\n<span id=\"実行してみる\" class=\"fragment\"></span><a href=\"#%E5%AE%9F%E8%A1%8C%E3%81%97%E3%81%A6%E3%81%BF%E3%82%8B\"><i class=\"fa fa-link\"></i></a>実行してみる</h2>\n\n<div class=\"code-frame\" data-lang=\"text\"><div class=\"highlight\"><pre>ansible-playbook -i hosts playbook.yml\n</pre></div></div>\n\n<div class=\"code-frame\" data-lang=\"実行結果\"><div class=\"highlight\"><pre>PLAY [test-server] ************************************************************ \n\nGATHERING FACTS *************************************************************** \nok: [192.168.33.10]\n\nTASK: [libselinux-python install] ********************************************* \nok: [192.168.33.10]\n\nTASK: [gcc install] *********************************************************** \nok: [192.168.33.10]\n\nTASK: [redis source download] ************************************************* \nok: [192.168.33.10]\n\nTASK: [redis unarchive] ******************************************************* \nchanged: [192.168.33.10]\n\nTASK: [make] ****************************************************************** \nchanged: [192.168.33.10]\n\nTASK: [make install] ********************************************************** \nchanged: [192.168.33.10]\n\nTASK: [deamonize on] ********************************************************** \nchanged: [192.168.33.10]\n\nTASK: [redis.conf copy] ******************************************************* \nok: [192.168.33.10]\n\nTASK: [redis start] *********************************************************** \nchanged: [192.168.33.10]\n\nPLAY RECAP ******************************************************************** \n192.168.33.10              : ok=10   changed=5    unreachable=0    failed=0   \n</pre></div></div>\n\n<p>上のは２回に実行した結果なので初回の結果とは若干違うかも。最終的に<code>ok=10</code>になってればOKだと思う。</p>\n\n<h2>\n<span id=\"確認してみる\" class=\"fragment\"></span><a href=\"#%E7%A2%BA%E8%AA%8D%E3%81%97%E3%81%A6%E3%81%BF%E3%82%8B\"><i class=\"fa fa-link\"></i></a>確認してみる</h2>\n\n<p><code>vagrant ssh</code>でも直接sshでもどちらでもいいのでログインする。</p>\n\n<div class=\"code-frame\" data-lang=\"text\"><div class=\"highlight\"><pre>vagrant ssh\n</pre></div></div>\n\n<div class=\"code-frame\" data-lang=\"text\"><div class=\"highlight\"><pre>[vagrant@localhost ~]$ redis-server -v\nRedis server v=2.8.19 sha=00000000:0 malloc=jemalloc-3.6.0 bits=64 build=41ebe2a844e67838\n[vagrant@localhost ~]$ redis-cli\n127.0.0.1:6379&gt; \n</pre></div></div>\n\n<p>ちゃんと入ってる。成功。</p>\n\n<h2>\n<span id=\"参考\" class=\"fragment\"></span><a href=\"#%E5%8F%82%E8%80%83\"><i class=\"fa fa-link\"></i></a>参考</h2>\n\n<ul>\n<li><a href=\"http://dev.classmethod.jp/tool/ansible/\">構成管理ツール Ansibleを使ってみる</a></li>\n<li><a href=\"http://qiita.com/joytomo/items/d0cb45074c61dd8935fd\">AnsibleでRedisの2.5以降のバージョンをインストールするPlaybook</a></li>\n<li><a href=\"http://qiita.com/tienlen/items/f629f780eba18d5bfdf5\">MacでAnsibleが動かなくなった時のファーストアクション</a></li>\n</ul>\n",
+        "body": "\n`Redis`をいじくり倒してパフォーマンス検証することになったので環境構築してみる。\n\n##必要なもの\n - Vagrant\n - VirtualBox\n - Ansible\n\n##準備\n###Vagrantをいれる\n[ここ](https://www.vagrantup.com/)からダウンロードしていれる。\n\n###VirtualBoxをいれる\n[ここ](https://www.virtualbox.org/wiki/Downloads)からダウンロードしていれる。\n\n###Ansibleをいれる\n\n```\nbrew install ansible\n```\n\n##VagrantのBOXを追加する\n\n今回はCentOS 7をいれる。\n\n```\nvagrant box add cent7 https://github.com/holms/vagrant-centos7-box/releases/download/7.1.1503.001/CentOS-7.1.1503-x86_64-netboot.box\n```\n\n適当なディレクトリを作成し、移動する。\n\n```\nmkdir hoge\ncd hoge\n```\n\nVagrant初期化。\n\n```\nvagrant init cent7\n```\n\n`Vagrantfile`ができるので以下のコメントアウトを外す。\n\n```Vagrantfile\nconfig.vm.network \"private_network\", ip: \"192.168.33.10\"\n```\n\nVirtual Machineを起動する。\n\n```\nvagrant up\n```\n\n`vagrant ssh`でもログインできるが、`Vagrantfile`で指定したipでログインできるかどうか試してみる。パスワードは`vagrant`。\n\n```\nssh vagrant@192.168.10.33\n```\n\n##Ansibleの設定をする\ninventory fileを作成する。ファイル名は適当に。\n\n```hosts\n[test-server]\n192.168.33.10\n\n[all:vars]\nansible_ssh_port=22\nansible_ssh_user=vagrant \nansible_ssh_pass=vagrant\nansible_sudo_pass=vagrant\nansible_connection=paramiko\n```\n\n`ansible_connection=paramiko`を指定しないとうまいことsshでログインできないので注意。\n\nPlaybookを作る。ファイル名は適当に。\n\n```playbook.yml\n---\n- hosts: test-server\n  sudo: yes\n  tasks:\n    - name: libselinux-python install\n      yum: name=libselinux-python state=latest\n    - name: gcc install\n      yum: name=gcc state=latest\n    - name: redis source download\n      get_url: >\n        url=http://download.redis.io/releases/redis-2.8.19.tar.gz\n        dest=/tmp/redis-2.8.19.tar.gz\n    - name: redis unarchive\n      command: >\n        tar zxvf redis-2.8.19.tar.gz\n        chdir=/tmp/\n    - name: make\n      command: >\n        make\n        chdir=/tmp/redis-2.8.19\n    - name: make install\n      command: >\n        make install\n        chdir=/tmp/redis-2.8.19\n    - name: deamonize on\n      replace: >\n        dest=/tmp/redis-2.8.19/redis.conf\n        regexp='daemonize no'\n        replace='daemonize yes'\n    - name: redis.conf copy\n      shell: creates=/etc/redis.conf cp /tmp/redis-2.8.19/redis.conf /etc/redis.conf\n    - name: redis start\n      command: >\n        redis-server /etc/redis.conf\n      sudo: no\n```\n\n##実行してみる\n\n```\nansible-playbook -i hosts playbook.yml\n```\n\n\n\n```実行結果\nPLAY [test-server] ************************************************************ \n\nGATHERING FACTS *************************************************************** \nok: [192.168.33.10]\n\nTASK: [libselinux-python install] ********************************************* \nok: [192.168.33.10]\n\nTASK: [gcc install] *********************************************************** \nok: [192.168.33.10]\n\nTASK: [redis source download] ************************************************* \nok: [192.168.33.10]\n\nTASK: [redis unarchive] ******************************************************* \nchanged: [192.168.33.10]\n\nTASK: [make] ****************************************************************** \nchanged: [192.168.33.10]\n\nTASK: [make install] ********************************************************** \nchanged: [192.168.33.10]\n\nTASK: [deamonize on] ********************************************************** \nchanged: [192.168.33.10]\n\nTASK: [redis.conf copy] ******************************************************* \nok: [192.168.33.10]\n\nTASK: [redis start] *********************************************************** \nchanged: [192.168.33.10]\n\nPLAY RECAP ******************************************************************** \n192.168.33.10              : ok=10   changed=5    unreachable=0    failed=0   \n```\n\n上のは２回に実行した結果なので初回の結果とは若干違うかも。最終的に`ok=10`になってればOKだと思う。\n\n\n##確認してみる\n`vagrant ssh`でも直接sshでもどちらでもいいのでログインする。\n\n```\nvagrant ssh\n```\n\n```\n[vagrant@localhost ~]$ redis-server -v\nRedis server v=2.8.19 sha=00000000:0 malloc=jemalloc-3.6.0 bits=64 build=41ebe2a844e67838\n[vagrant@localhost ~]$ redis-cli\n127.0.0.1:6379> \n```\n\nちゃんと入ってる。成功。\n\n##参考\n - [構成管理ツール Ansibleを使ってみる](http://dev.classmethod.jp/tool/ansible/)\n - [AnsibleでRedisの2.5以降のバージョンをインストールするPlaybook](http://qiita.com/joytomo/items/d0cb45074c61dd8935fd)\n - [MacでAnsibleが動かなくなった時のファーストアクション](http://qiita.com/tienlen/items/f629f780eba18d5bfdf5)\n",
+        "coediting": false,
+        "created_at": "2015-06-17T16:11:58+09:00",
+        "id": "e78b173553f5233cd8bd",
+        "private": false,
+        "tags": [
+            {
+                "name": "Redis",
+                "versions": [
+                ]
+            },
+            {
+                "name": "vagrant",
+                "versions": [
+                ]
+            },
+            {
+                "name": "Ansible",
+                "versions": [
+                ]
+            }
+        ],
+        "title": "Redisをいじくり倒す環境をVagrant+Ansibleで構築する",
+        "updated_at": "2015-06-17T16:11:58+09:00",
+        "url": "http://qiita.com/master-of-sugar/items/e78b173553f5233cd8bd",
+        "user": {
+            "description": "元トラックドライバー -> エンジニア\r\n\r\n基本的にはJavaの人ですが、何でもやります。\r\n基本的にはSIの人ですが、最近色々はじめてます。",
+            "facebook_id": "",
+            "followees_count": 1,
+            "followers_count": 0,
+            "github_login_name": "master-of-sugar",
+            "id": "master-of-sugar",
+            "items_count": 9,
+            "linkedin_id": "",
+            "location": "",
+            "name": "",
+            "organization": "",
+            "permanent_id": 10058,
+            "profile_image_url": "https://pbs.twimg.com/profile_images/608602939523911680/V0yOIpQk_normal.png",
+            "twitter_screen_name": "master_of_sugar",
+            "website_url": ""
+        }
+    },
+    {
+        "rendered_body": "<p>Mavenセントラルに登録するほどでもなく、自前でMavenレポジトリを構築するほどでもない。そんなオレオレライブラリ達の置き場に困ることがよくある。<br>\nこれまでは<code>jar</code>ごとバージョン管理対象にして<code>mvn install:install-file</code>してね。なスタンスだったのだがGithub PagesをMavenレポジトリにすることができるらしいのでやってみた。</p>\n\n<h2>\n<span id=\"github-pagesを作成する\" class=\"fragment\"></span><a href=\"#github-pages%E3%82%92%E4%BD%9C%E6%88%90%E3%81%99%E3%82%8B\"><i class=\"fa fa-link\"></i></a>Github Pagesを作成する</h2>\n\n<p>Githubでレポジトリを作成。<code>[ユーザー名].github.io</code>という名前にするとユーザーページができあがる。</p>\n\n<p>適当な場所にクローンしておく。</p>\n\n<h2>\n<span id=\"pomxml設定オレオレライブラリ側\" class=\"fragment\"></span><a href=\"#pomxml%E8%A8%AD%E5%AE%9A%E3%82%AA%E3%83%AC%E3%82%AA%E3%83%AC%E3%83%A9%E3%82%A4%E3%83%96%E3%83%A9%E3%83%AA%E5%81%B4\"><i class=\"fa fa-link\"></i></a>pom.xml設定(オレオレライブラリ側)</h2>\n\n<p>オレオレライブラリのデプロイ先をGithub Pagesをクローンした場所にする。</p>\n\n<div class=\"code-frame\" data-lang=\"text\"><div class=\"highlight\"><pre>&lt;properties&gt;\n  &lt;github.repo.directory&gt;/path/to/master-of-sugar.github.io/mvn-repo&lt;/github.repo.directory&gt;\n&lt;/properties&gt;\n&lt;distributionManagement&gt;\n  &lt;repository&gt;\n    &lt;id&gt;internal.repo&lt;/id&gt;\n    &lt;name&gt;Local Github Pages&lt;/name&gt;\n    &lt;url&gt;file://${github.repo.directory}&lt;/url&gt;\n  &lt;/repository&gt;\n&lt;/distributionManagement&gt;\n</pre></div></div>\n\n<h2>\n<span id=\"デプロイする\" class=\"fragment\"></span><a href=\"#%E3%83%87%E3%83%97%E3%83%AD%E3%82%A4%E3%81%99%E3%82%8B\"><i class=\"fa fa-link\"></i></a>デプロイする</h2>\n\n<div class=\"code-frame\" data-lang=\"text\"><div class=\"highlight\"><pre>mvn deploy\n</pre></div></div>\n\n<p><code>pom.xml</code>で指定したGithub Pagesのクローンディレクトリに配置される。</p>\n\n<h2>\n<span id=\"mavenレポジトリgithub-pagesに登録する\" class=\"fragment\"></span><a href=\"#maven%E3%83%AC%E3%83%9D%E3%82%B8%E3%83%88%E3%83%AAgithub-pages%E3%81%AB%E7%99%BB%E9%8C%B2%E3%81%99%E3%82%8B\"><i class=\"fa fa-link\"></i></a>Mavenレポジトリ(Github Pages)に登録する</h2>\n\n<p>普通にGithub Pagesにpushするだけ。</p>\n\n<div class=\"code-frame\" data-lang=\"text\"><div class=\"highlight\"><pre>git push origin master\n</pre></div></div>\n\n<h2>\n<span id=\"pomxml設定使う側\" class=\"fragment\"></span><a href=\"#pomxml%E8%A8%AD%E5%AE%9A%E4%BD%BF%E3%81%86%E5%81%B4\"><i class=\"fa fa-link\"></i></a>pom.xml設定(使う側)</h2>\n\n<p>オレオレライブラリの取得元であるGithub Pagesを登録する。</p>\n\n<div class=\"code-frame\" data-lang=\"text\"><div class=\"highlight\"><pre>&lt;repositories&gt;\n  &lt;repository&gt;\n    &lt;id&gt;github&lt;/id&gt;\n    &lt;url&gt;http://master-of-sugar.github.io/mvn-repo/&lt;/url&gt;\n  &lt;/repository&gt;\n&lt;/repositories&gt;\n</pre></div></div>\n\n<p>これで<code>mvn install:install-file</code>しなくても使える。わー簡単。</p>\n",
+        "body": "\nMavenセントラルに登録するほどでもなく、自前でMavenレポジトリを構築するほどでもない。そんなオレオレライブラリ達の置き場に困ることがよくある。\nこれまでは`jar`ごとバージョン管理対象にして`mvn install:install-file`してね。なスタンスだったのだがGithub PagesをMavenレポジトリにすることができるらしいのでやってみた。\n\n##Github Pagesを作成する\nGithubでレポジトリを作成。`[ユーザー名].github.io`という名前にするとユーザーページができあがる。\n\n適当な場所にクローンしておく。\n\n##pom.xml設定(オレオレライブラリ側)\n\nオレオレライブラリのデプロイ先をGithub Pagesをクローンした場所にする。\n\n```\n<properties>\n  <github.repo.directory>/path/to/master-of-sugar.github.io/mvn-repo</github.repo.directory>\n</properties>\n<distributionManagement>\n  <repository>\n    <id>internal.repo</id>\n    <name>Local Github Pages</name>\n    <url>file://${github.repo.directory}</url>\n  </repository>\n</distributionManagement>\n```\n\n##デプロイする\n\n```\nmvn deploy\n```\n\n`pom.xml`で指定したGithub Pagesのクローンディレクトリに配置される。\n\n##Mavenレポジトリ(Github Pages)に登録する\n普通にGithub Pagesにpushするだけ。\n\n```\ngit push origin master\n```\n\n##pom.xml設定(使う側)\nオレオレライブラリの取得元であるGithub Pagesを登録する。\n\n```\n<repositories>\n  <repository>\n    <id>github</id>\n    <url>http://master-of-sugar.github.io/mvn-repo/</url>\n  </repository>\n</repositories>\n```\n\n\n\nこれで`mvn install:install-file`しなくても使える。わー簡単。\n",
+        "coediting": false,
+        "created_at": "2015-06-16T13:43:59+09:00",
+        "id": "2431114e9913ec869675",
+        "private": false,
+        "tags": [
+            {
+                "name": "Java",
+                "versions": [
+                ]
+            },
+            {
+                "name": "Maven",
+                "versions": [
+                ]
+            },
+            {
+                "name": "GitHub",
+                "versions": [
+                ]
+            }
+        ],
+        "title": "オレオレライブラリのMavenレポジトリをGithubに作ってしまう",
+        "updated_at": "2015-06-16T13:43:59+09:00",
+        "url": "http://qiita.com/master-of-sugar/items/2431114e9913ec869675",
+        "user": {
+            "description": "元トラックドライバー -> エンジニア\r\n\r\n基本的にはJavaの人ですが、何でもやります。\r\n基本的にはSIの人ですが、最近色々はじめてます。",
+            "facebook_id": "",
+            "followees_count": 1,
+            "followers_count": 0,
+            "github_login_name": "master-of-sugar",
+            "id": "master-of-sugar",
+            "items_count": 9,
+            "linkedin_id": "",
+            "location": "",
+            "name": "",
+            "organization": "",
+            "permanent_id": 10058,
+            "profile_image_url": "https://pbs.twimg.com/profile_images/608602939523911680/V0yOIpQk_normal.png",
+            "twitter_screen_name": "master_of_sugar",
+            "website_url": ""
+        }
+    },
+    {
+        "rendered_body": "<p>公式サイトの<a href=\"https://atom.io/docs/v0.209.0/hacking-atom-package-modifying-text\">これ</a>をやってみた。</p>\n\n<p>Atomでは<code>Command</code>を呼び出すことで色々な拡張機能を使うことができる。というわけでこれを作ってみようというチュートリアル。選択した文字列をアスキーアートにしてくれるというだけのやつ。</p>\n\n<p>ちなみにコマンドは<code>cmd-shift-P</code>でコマンドパレットを開いて入力or選択して実行できる。</p>\n\n<h2>\n<span id=\"環境をつくる\" class=\"fragment\"></span><a href=\"#%E7%92%B0%E5%A2%83%E3%82%92%E3%81%A4%E3%81%8F%E3%82%8B\"><i class=\"fa fa-link\"></i></a>環境をつくる</h2>\n\n<p>コマンドパレットを開いて<code>Package Generator: Generate Package</code>を実行する。<br>\nパッケージを作成するパスが表示されるので、<code>my-package</code>の部分を<code>ascii-art</code>に変更してreturn。</p>\n\n<p>こんな感じで左側にツリービューがでてくる。<br>\n<img src=\"https://qiita-image-store.s3.amazonaws.com/0/10058/afcb18f0-e56b-71f8-3222-1bbea21516fa.png\" alt=\"Screen Shot 2015-06-15 at 17.26.51.png\" title=\"Screen Shot 2015-06-15 at 17.26.51.png\"></p>\n\n<p>今回は使わないので以下を削除する</p>\n\n<ul>\n<li><code>lib/ascii-art-view.coffee</code></li>\n<li><code>spec/ascii-art-view-spec.coffee</code></li>\n<li><code>styles/</code></li>\n</ul>\n\n<h2>\n<span id=\"コマンドを作る\" class=\"fragment\"></span><a href=\"#%E3%82%B3%E3%83%9E%E3%83%B3%E3%83%89%E3%82%92%E4%BD%9C%E3%82%8B\"><i class=\"fa fa-link\"></i></a>コマンドを作る</h2>\n\n<p><code>lib/ascii-art.coffee</code>を開いて次のように書き換える。何も考えずに一旦置き換える。</p>\n\n<div class=\"code-frame\" data-lang=\"text\"><div class=\"highlight\"><pre>{CompositeDisposable} = require 'atom'\n\nmodule.exports =\n  subscriptions: null\n\n  activate: -&gt;\n    @subscriptions = new CompositeDisposable\n    @subscriptions.add atom.commands.add 'atom-workspace',\n      'ascii-art:convert': =&gt; @convert()\n\n  deactivate: -&gt;\n    @subscriptions.dispose()\n\n  convert: -&gt;\n    if editor = atom.workspace.getActiveTextEditor()\n      editor.insertText('Hello, World!')\n</pre></div></div>\n\n<p>コードを見てなんとなく想像する。<br>\n<code>activate</code>でコマンドを登録して呼び出すメソッドを関連付けてるっぽい。<code>ascii-art:convert</code>というコマンドが実行されると<code>convert</code>メソッドが呼び出される。<br>\n<code>atom-workspace</code>の部分はスコープ的概念なのかな？<code>deactivate</code>ではふむふむ。disposeね。<br>\nま。このへんは追々調べよう。</p>\n\n<p><code>convert</code>メソッドではアクティブなテキストエディタを取得してそいつに<code>\"Hello, World\"</code>という文字列を追加している。</p>\n\n<h2>\n<span id=\"ひとまず動かしてみる\" class=\"fragment\"></span><a href=\"#%E3%81%B2%E3%81%A8%E3%81%BE%E3%81%9A%E5%8B%95%E3%81%8B%E3%81%97%E3%81%A6%E3%81%BF%E3%82%8B\"><i class=\"fa fa-link\"></i></a>ひとまず動かしてみる</h2>\n\n<p>パッケージを動かすにはリロードをしなくてはならないらしい。<br>\nコマンドパレット-&gt;<code>Window: Reload</code>でリロード。<code>ctrl-alt-cmd-l</code>でもいける。</p>\n\n<p>リロードしたら、コマンドパレット-&gt;<code>ascii-art:convert</code>を・・・。出てこない。</p>\n\n<h2>\n<span id=\"packagejsonを編集\" class=\"fragment\"></span><a href=\"#packagejson%E3%82%92%E7%B7%A8%E9%9B%86\"><i class=\"fa fa-link\"></i></a>package.jsonを編集</h2>\n\n<p>どうやら<code>package.json</code>の<code>activationCommands</code>に登録しないとでてこないらしい。</p>\n\n<div class=\"code-frame\" data-lang=\"text\"><div class=\"highlight\"><pre>\"activationCommands\": {\n  \"atom-workspace\": \"ascii-art:convert\"\n}\n</pre></div></div>\n\n<p>リロードしてコマンドパレット-&gt;<code>ascii-art:convert</code>を実行！！アクティブなテキストエディタに<code>\"Hello, World\"</code>が挿入された。成功。</p>\n\n<h2>\n<span id=\"キーバインドを追加する\" class=\"fragment\"></span><a href=\"#%E3%82%AD%E3%83%BC%E3%83%90%E3%82%A4%E3%83%B3%E3%83%89%E3%82%92%E8%BF%BD%E5%8A%A0%E3%81%99%E3%82%8B\"><i class=\"fa fa-link\"></i></a>キーバインドを追加する</h2>\n\n<p>いちいちコマンドパレットを起動して・・・だと面倒なのでショートカットを登録する。やり方はとても簡単。<code>keymaps/ascii-art.cson</code>を編集するだけ。</p>\n\n<div class=\"code-frame\" data-lang=\"text\"><div class=\"highlight\"><pre>'atom-text-editor':\n  'ctrl-alt-a': 'ascii-art:convert'\n</pre></div></div>\n\n<p>リロードして<code>ctrl-alt-a</code>。<code>\"Hello, World\"</code>が挿入された。成功。</p>\n\n<h2>\n<span id=\"依存モジュールを追加する\" class=\"fragment\"></span><a href=\"#%E4%BE%9D%E5%AD%98%E3%83%A2%E3%82%B8%E3%83%A5%E3%83%BC%E3%83%AB%E3%82%92%E8%BF%BD%E5%8A%A0%E3%81%99%E3%82%8B\"><i class=\"fa fa-link\"></i></a>依存モジュールを追加する</h2>\n\n<p>アスキーアートへの変換には<a href=\"https://www.npmjs.com/package/figlet\">figlet</a>というnode moduleを使うので<code>package.json</code>を編集する。</p>\n\n<div class=\"code-frame\" data-lang=\"text\"><div class=\"highlight\"><pre>\"dependencies\": {\n  \"figlet\": \"1.0.8\"\n}\n</pre></div></div>\n\n<p><code>Atom</code>が依存しているモジュール以外を使う場合<code>Update Package Dependencies: Update</code>を実行しなくてはいけないらしい。<br>\nコマンドパレット-&gt;<code>Update Package Dependencies: Update</code>を実行。</p>\n\n<h2>\n<span id=\"選択した文字をアスキーアートに変換する処理を書く\" class=\"fragment\"></span><a href=\"#%E9%81%B8%E6%8A%9E%E3%81%97%E3%81%9F%E6%96%87%E5%AD%97%E3%82%92%E3%82%A2%E3%82%B9%E3%82%AD%E3%83%BC%E3%82%A2%E3%83%BC%E3%83%88%E3%81%AB%E5%A4%89%E6%8F%9B%E3%81%99%E3%82%8B%E5%87%A6%E7%90%86%E3%82%92%E6%9B%B8%E3%81%8F\"><i class=\"fa fa-link\"></i></a>選択した文字をアスキーアートに変換する処理を書く</h2>\n\n<p><code>lib/ascii-art.coffee</code>を編集する。</p>\n\n<div class=\"code-frame\" data-lang=\"text\"><div class=\"highlight\"><pre>convert: -&gt;\n  if editor = atom.workspace.getActiveTextEditor()\n    selection = editor.getSelectedText()\n\n    figlet = require 'figlet'\n    font = \"o8\"\n    figlet selection, {font: font}, (error, art) -&gt;\n      if error\n        console.error(error)\n      else\n        editor.insertText(\"\\n#{art}\\n\")\n</pre></div></div>\n\n<h2>\n<span id=\"動かしてみる\" class=\"fragment\"></span><a href=\"#%E5%8B%95%E3%81%8B%E3%81%97%E3%81%A6%E3%81%BF%E3%82%8B\"><i class=\"fa fa-link\"></i></a>動かしてみる</h2>\n\n<p>リロードして適当なエディタにアスキーアートに変換したい文字を入力して選択。<br>\n<img src=\"https://qiita-image-store.s3.amazonaws.com/0/10058/7ebfde0f-eb7d-6395-a7ae-389a289906ad.png\" alt=\"Screen Shot 2015-06-15 at 18.16.35.png\" title=\"Screen Shot 2015-06-15 at 18.16.35.png\"></p>\n\n<p><code>ctrl-alt-a</code>。</p>\n\n<p><img src=\"https://qiita-image-store.s3.amazonaws.com/0/10058/cf738c21-253f-4b17-4c6b-c3d6f1eec1a9.png\" alt=\"Screen Shot 2015-06-15 at 18.16.47.png\" title=\"Screen Shot 2015-06-15 at 18.16.47.png\"></p>\n\n<p>成功！！</p>\n\n<h2>\n<span id=\"感想\" class=\"fragment\"></span><a href=\"#%E6%84%9F%E6%83%B3\"><i class=\"fa fa-link\"></i></a>感想</h2>\n\n<p>今回はたいしたことしてないけど比較的簡単に色々機能拡張できそう。あとは<code>coffeeScript</code>で書けるのは個人的にステキ。</p>\n\n<h2>\n<span id=\"調べること\" class=\"fragment\"></span><a href=\"#%E8%AA%BF%E3%81%B9%E3%82%8B%E3%81%93%E3%81%A8\"><i class=\"fa fa-link\"></i></a>調べること</h2>\n\n<ul>\n<li>もっとちゃんと理解する</li>\n<li>配布の方法問題</li>\n<li>適用範囲(例えば拡張子が.unkoの場合だけとか)の指定問題</li>\n<li>keyBindが簡単にかぶりそう問題</li>\n</ul>\n",
+        "body": "\n公式サイトの[これ](https://atom.io/docs/v0.209.0/hacking-atom-package-modifying-text)をやってみた。\n\nAtomでは`Command`を呼び出すことで色々な拡張機能を使うことができる。というわけでこれを作ってみようというチュートリアル。選択した文字列をアスキーアートにしてくれるというだけのやつ。\n\nちなみにコマンドは`cmd-shift-P`でコマンドパレットを開いて入力or選択して実行できる。\n\n##環境をつくる\n\nコマンドパレットを開いて`Package Generator: Generate Package`を実行する。\nパッケージを作成するパスが表示されるので、`my-package`の部分を`ascii-art`に変更してreturn。\n\nこんな感じで左側にツリービューがでてくる。\n![Screen Shot 2015-06-15 at 17.26.51.png](https://qiita-image-store.s3.amazonaws.com/0/10058/afcb18f0-e56b-71f8-3222-1bbea21516fa.png \"Screen Shot 2015-06-15 at 17.26.51.png\")\n\n今回は使わないので以下を削除する\n\n - `lib/ascii-art-view.coffee`\n - `spec/ascii-art-view-spec.coffee`\n - `styles/`\n\n\n##コマンドを作る\n\n`lib/ascii-art.coffee`を開いて次のように書き換える。何も考えずに一旦置き換える。\n\n```\n{CompositeDisposable} = require 'atom'\n\nmodule.exports =\n  subscriptions: null\n\n  activate: ->\n    @subscriptions = new CompositeDisposable\n    @subscriptions.add atom.commands.add 'atom-workspace',\n      'ascii-art:convert': => @convert()\n\n  deactivate: ->\n    @subscriptions.dispose()\n\n  convert: ->\n    if editor = atom.workspace.getActiveTextEditor()\n      editor.insertText('Hello, World!')\n```\n\nコードを見てなんとなく想像する。\n`activate`でコマンドを登録して呼び出すメソッドを関連付けてるっぽい。`ascii-art:convert`というコマンドが実行されると`convert`メソッドが呼び出される。\n`atom-workspace`の部分はスコープ的概念なのかな？`deactivate`ではふむふむ。disposeね。\nま。このへんは追々調べよう。\n\n`convert`メソッドではアクティブなテキストエディタを取得してそいつに`\"Hello, World\"`という文字列を追加している。\n\n##ひとまず動かしてみる\nパッケージを動かすにはリロードをしなくてはならないらしい。\nコマンドパレット->`Window: Reload`でリロード。`ctrl-alt-cmd-l`でもいける。\n\nリロードしたら、コマンドパレット->`ascii-art:convert`を・・・。出てこない。\n\n##package.jsonを編集\nどうやら`package.json`の`activationCommands`に登録しないとでてこないらしい。\n\n```\n\"activationCommands\": {\n  \"atom-workspace\": \"ascii-art:convert\"\n}\n```\n\nリロードしてコマンドパレット->`ascii-art:convert`を実行！！アクティブなテキストエディタに`\"Hello, World\"`が挿入された。成功。\n\n##キーバインドを追加する\n\nいちいちコマンドパレットを起動して・・・だと面倒なのでショートカットを登録する。やり方はとても簡単。`keymaps/ascii-art.cson`を編集するだけ。\n\n```\n'atom-text-editor':\n  'ctrl-alt-a': 'ascii-art:convert'\n```\n\nリロードして`ctrl-alt-a`。`\"Hello, World\"`が挿入された。成功。\n\n##依存モジュールを追加する\n\nアスキーアートへの変換には[figlet](https://www.npmjs.com/package/figlet)というnode moduleを使うので`package.json`を編集する。\n\n```\n\"dependencies\": {\n  \"figlet\": \"1.0.8\"\n}\n```\n\n`Atom`が依存しているモジュール以外を使う場合`Update Package Dependencies: Update`を実行しなくてはいけないらしい。\nコマンドパレット->`Update Package Dependencies: Update`を実行。\n\n##選択した文字をアスキーアートに変換する処理を書く\n\n`lib/ascii-art.coffee`を編集する。\n\n```\nconvert: ->\n  if editor = atom.workspace.getActiveTextEditor()\n    selection = editor.getSelectedText()\n\n    figlet = require 'figlet'\n    font = \"o8\"\n    figlet selection, {font: font}, (error, art) ->\n      if error\n        console.error(error)\n      else\n        editor.insertText(\"\\n#{art}\\n\")\n```\n\n##動かしてみる\n\nリロードして適当なエディタにアスキーアートに変換したい文字を入力して選択。\n![Screen Shot 2015-06-15 at 18.16.35.png](https://qiita-image-store.s3.amazonaws.com/0/10058/7ebfde0f-eb7d-6395-a7ae-389a289906ad.png \"Screen Shot 2015-06-15 at 18.16.35.png\")\n\n`ctrl-alt-a`。\n\n![Screen Shot 2015-06-15 at 18.16.47.png](https://qiita-image-store.s3.amazonaws.com/0/10058/cf738c21-253f-4b17-4c6b-c3d6f1eec1a9.png \"Screen Shot 2015-06-15 at 18.16.47.png\")\n\n\n成功！！\n\n##感想\n今回はたいしたことしてないけど比較的簡単に色々機能拡張できそう。あとは`coffeeScript`で書けるのは個人的にステキ。\n\n##調べること\n - もっとちゃんと理解する\n - 配布の方法問題\n - 適用範囲(例えば拡張子が.unkoの場合だけとか)の指定問題\n - keyBindが簡単にかぶりそう問題\n",
+        "coediting": false,
+        "created_at": "2015-06-15T18:28:07+09:00",
+        "id": "3f610ba50f3bafbe9d9f",
+        "private": false,
+        "tags": [
+            {
+                "name": "JavaScript",
+                "versions": [
+                ]
+            },
+            {
+                "name": "ATOM",
+                "versions": [
+                ]
+            }
+        ],
+        "title": "AtomのPackageを作るチュートリアルをやってみた",
+        "updated_at": "2015-06-15T18:28:07+09:00",
+        "url": "http://qiita.com/master-of-sugar/items/3f610ba50f3bafbe9d9f",
+        "user": {
+            "description": "元トラックドライバー -> エンジニア\r\n\r\n基本的にはJavaの人ですが、何でもやります。\r\n基本的にはSIの人ですが、最近色々はじめてます。",
+            "facebook_id": "",
+            "followees_count": 1,
+            "followers_count": 0,
+            "github_login_name": "master-of-sugar",
+            "id": "master-of-sugar",
+            "items_count": 9,
+            "linkedin_id": "",
+            "location": "",
+            "name": "",
+            "organization": "",
+            "permanent_id": 10058,
+            "profile_image_url": "https://pbs.twimg.com/profile_images/608602939523911680/V0yOIpQk_normal.png",
+            "twitter_screen_name": "master_of_sugar",
+            "website_url": ""
+        }
+    },
+    {
+        "rendered_body": "<p>メモ的に。</p>\n\n<h2>\n<span id=\"接続urlを取得して読み解く\" class=\"fragment\"></span><a href=\"#%E6%8E%A5%E7%B6%9Aurl%E3%82%92%E5%8F%96%E5%BE%97%E3%81%97%E3%81%A6%E8%AA%AD%E3%81%BF%E8%A7%A3%E3%81%8F\"><i class=\"fa fa-link\"></i></a>接続URLを取得して読み解く</h2>\n\n<p>接続URLを取得する。</p>\n\n<div class=\"code-frame\" data-lang=\"text\"><div class=\"highlight\"><pre>heroku config\n</pre></div></div>\n\n<p><code>postgres://</code>ではじまるURLが取得できるのでURLから情報を抜く。</p>\n\n<div class=\"code-frame\" data-lang=\"text\"><div class=\"highlight\"><pre>postgres://&lt;接続ユーザー&gt;:&lt;パスワード&gt;@&lt;ホスト名&gt;:&lt;ポート&gt;/&lt;DB名&gt;\n</pre></div></div>\n\n<p>各ツールの接続設定に情報を入力して完了。</p>\n",
+        "body": "\nメモ的に。\n\n##接続URLを取得して読み解く\n接続URLを取得する。\n\n```\nheroku config\n```\n\n`postgres://`ではじまるURLが取得できるのでURLから情報を抜く。\n\n```\npostgres://<接続ユーザー>:<パスワード>@<ホスト名>:<ポート>/<DB名>\n```\n\n各ツールの接続設定に情報を入力して完了。\n",
+        "coediting": false,
+        "created_at": "2015-06-15T12:36:21+09:00",
+        "id": "887dc292c7155102c4d9",
+        "private": false,
+        "tags": [
+            {
+                "name": "Heroku",
+                "versions": [
+                ]
+            },
+            {
+                "name": "PostgreSQL",
+                "versions": [
+                ]
+            }
+        ],
+        "title": "HerokuのポスグレにpgAdminやその他ツールから接続する",
+        "updated_at": "2015-06-15T12:36:21+09:00",
+        "url": "http://qiita.com/master-of-sugar/items/887dc292c7155102c4d9",
+        "user": {
+            "description": "元トラックドライバー -> エンジニア\r\n\r\n基本的にはJavaの人ですが、何でもやります。\r\n基本的にはSIの人ですが、最近色々はじめてます。",
+            "facebook_id": "",
+            "followees_count": 1,
+            "followers_count": 0,
+            "github_login_name": "master-of-sugar",
+            "id": "master-of-sugar",
+            "items_count": 9,
+            "linkedin_id": "",
+            "location": "",
+            "name": "",
+            "organization": "",
+            "permanent_id": 10058,
+            "profile_image_url": "https://pbs.twimg.com/profile_images/608602939523911680/V0yOIpQk_normal.png",
+            "twitter_screen_name": "master_of_sugar",
+            "website_url": ""
+        }
+    },
+    {
+        "rendered_body": "<p><a href=\"https://github.com/dropwizard/dropwizard-java8\">Dropwizard java8 Bundle</a>を導入して動かすところまで。 <br>\nこれをやると<code>java.util.Optional</code>とDate/Time API (JSR-310)が色々なところで使えるようになる。</p>\n\n<h2>\n<span id=\"pomxml\" class=\"fragment\"></span><a href=\"#pomxml\"><i class=\"fa fa-link\"></i></a>pom.xml</h2>\n\n<p>Java8 Bundleを追加。</p>\n\n<div class=\"code-frame\" data-lang=\"text\"><div class=\"highlight\"><pre>&lt;properties&gt;\n    &lt;project.build.sourceEncoding&gt;UTF-8&lt;/project.build.sourceEncoding&gt;\n    &lt;project.reporting.outputEncoding&gt;UTF-8&lt;/project.reporting.outputEncoding&gt;\n    &lt;dropwizard.version&gt;0.8.1&lt;/dropwizard.version&gt;\n    &lt;dropwizard.java8.version&gt;0.8.0-1&lt;/dropwizard.java8.version&gt;\n&lt;/properties&gt;\n</pre></div></div>\n\n<div class=\"code-frame\" data-lang=\"text\"><div class=\"highlight\"><pre>&lt;dependency&gt;\n  &lt;groupId&gt;io.dropwizard.modules&lt;/groupId&gt;\n  &lt;artifactId&gt;dropwizard-java8&lt;/artifactId&gt;\n  &lt;version&gt;${dropwizard.java8.version}&lt;/version&gt;\n&lt;/dependency&gt;\n&lt;dependency&gt;\n  &lt;groupId&gt;io.dropwizard.modules&lt;/groupId&gt;\n  &lt;artifactId&gt;dropwizard-java8-auth&lt;/artifactId&gt;\n  &lt;version&gt;${dropwizard.java8.version}&lt;/version&gt;\n&lt;/dependency&gt;\n&lt;dependency&gt;\n  &lt;groupId&gt;io.dropwizard.modules&lt;/groupId&gt;\n  &lt;artifactId&gt;dropwizard-java8-jdbi&lt;/artifactId&gt;\n  &lt;version&gt;${dropwizard.java8.version}&lt;/version&gt;\n&lt;/dependency&gt;\n</pre></div></div>\n\n<p><code>maven-compiler-plugin</code>に設定をjava8にする。</p>\n\n<div class=\"code-frame\" data-lang=\"text\"><div class=\"highlight\"><pre>&lt;plugin&gt;\n  &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;\n  &lt;artifactId&gt;maven-compiler-plugin&lt;/artifactId&gt;\n  &lt;version&gt;3.1&lt;/version&gt;\n  &lt;configuration&gt;\n    &lt;source&gt;1.8&lt;/source&gt;\n    &lt;target&gt;1.8&lt;/target&gt;\n    &lt;encoding&gt;UTF-8&lt;/encoding&gt;\n   &lt;/configuration&gt;\n&lt;/plugin&gt;\n</pre></div></div>\n\n<h2>\n<span id=\"applicationクラス\" class=\"fragment\"></span><a href=\"#application%E3%82%AF%E3%83%A9%E3%82%B9\"><i class=\"fa fa-link\"></i></a>Applicationクラス</h2>\n\n<div class=\"code-frame\" data-lang=\"text\"><div class=\"highlight\"><pre>@Override\npublic void initialize(Bootstrap&lt;ExampleConfiguration&gt; bootstrap) {\n\n    //for Java8 bundle.\n    bootstrap.addBundle(new Java8Bundle());\n...\n</pre></div></div>\n\n<h2>\n<span id=\"動かしてみる\" class=\"fragment\"></span><a href=\"#%E5%8B%95%E3%81%8B%E3%81%97%E3%81%A6%E3%81%BF%E3%82%8B\"><i class=\"fa fa-link\"></i></a>動かしてみる</h2>\n\n<p>これはjava8だからといって特別なことはないけど一応。</p>\n\n<div class=\"code-frame\" data-lang=\"text\"><div class=\"highlight\"><pre>mvn package\n</pre></div></div>\n\n<div class=\"code-frame\" data-lang=\"text\"><div class=\"highlight\"><pre>java -jar example.jar server example.yml\n</pre></div></div>\n\n<h2>\n<span id=\"サンプル\" class=\"fragment\"></span><a href=\"#%E3%82%B5%E3%83%B3%E3%83%97%E3%83%AB\"><i class=\"fa fa-link\"></i></a>サンプル</h2>\n\n<p>Dropwizard＋Java8ですぐに動かせる(たぶん)サンプルプロジェクトをGithubにあげておきました。<br>\n<a href=\"https://github.com/master-of-sugar/dropwizard-java8-example\">https://github.com/master-of-sugar/dropwizard-java8-example</a></p>\n",
+        "body": "\n[Dropwizard java8 Bundle](https://github.com/dropwizard/dropwizard-java8)を導入して動かすところまで。 \nこれをやると`java.util.Optional`とDate/Time API (JSR-310)が色々なところで使えるようになる。\n\n##pom.xml\n\nJava8 Bundleを追加。\n\n```\n<properties>\n    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>\n    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>\n    <dropwizard.version>0.8.1</dropwizard.version>\n    <dropwizard.java8.version>0.8.0-1</dropwizard.java8.version>\n</properties>\n```\n\n```\n<dependency>\n  <groupId>io.dropwizard.modules</groupId>\n  <artifactId>dropwizard-java8</artifactId>\n  <version>${dropwizard.java8.version}</version>\n</dependency>\n<dependency>\n  <groupId>io.dropwizard.modules</groupId>\n  <artifactId>dropwizard-java8-auth</artifactId>\n  <version>${dropwizard.java8.version}</version>\n</dependency>\n<dependency>\n  <groupId>io.dropwizard.modules</groupId>\n  <artifactId>dropwizard-java8-jdbi</artifactId>\n  <version>${dropwizard.java8.version}</version>\n</dependency>\n```\n\n`maven-compiler-plugin`に設定をjava8にする。\n\n```\n<plugin>\n  <groupId>org.apache.maven.plugins</groupId>\n  <artifactId>maven-compiler-plugin</artifactId>\n  <version>3.1</version>\n  <configuration>\n    <source>1.8</source>\n    <target>1.8</target>\n    <encoding>UTF-8</encoding>\n   </configuration>\n</plugin>\n```\n\n##Applicationクラス\n\n```\n@Override\npublic void initialize(Bootstrap<ExampleConfiguration> bootstrap) {\n\t\t\n\t//for Java8 bundle.\n\tbootstrap.addBundle(new Java8Bundle());\n...\n```\n\n##動かしてみる\nこれはjava8だからといって特別なことはないけど一応。\n\n```\nmvn package\n```\n\n```\njava -jar example.jar server example.yml\n```\n\n##サンプル\nDropwizard＋Java8ですぐに動かせる(たぶん)サンプルプロジェクトをGithubにあげておきました。\n[https://github.com/master-of-sugar/dropwizard-java8-example](https://github.com/master-of-sugar/dropwizard-java8-example)\n",
+        "coediting": false,
+        "created_at": "2015-06-13T15:00:05+09:00",
+        "id": "4dd77d92caef4ecc5c86",
+        "private": false,
+        "tags": [
+            {
+                "name": "Java",
+                "versions": [
+                ]
+            },
+            {
+                "name": "dropwizard",
+                "versions": [
+                ]
+            }
+        ],
+        "title": "Dropwizardをjava8で動かす",
+        "updated_at": "2015-06-13T15:00:05+09:00",
+        "url": "http://qiita.com/master-of-sugar/items/4dd77d92caef4ecc5c86",
+        "user": {
+            "description": "元トラックドライバー -> エンジニア\r\n\r\n基本的にはJavaの人ですが、何でもやります。\r\n基本的にはSIの人ですが、最近色々はじめてます。",
+            "facebook_id": "",
+            "followees_count": 1,
+            "followers_count": 0,
+            "github_login_name": "master-of-sugar",
+            "id": "master-of-sugar",
+            "items_count": 9,
+            "linkedin_id": "",
+            "location": "",
+            "name": "",
+            "organization": "",
+            "permanent_id": 10058,
+            "profile_image_url": "https://pbs.twimg.com/profile_images/608602939523911680/V0yOIpQk_normal.png",
+            "twitter_screen_name": "master_of_sugar",
+            "website_url": ""
+        }
+    },
+    {
+        "rendered_body": "\n<h2>\n<span id=\"仕掛けを作る\" class=\"fragment\"></span><a href=\"#%E4%BB%95%E6%8E%9B%E3%81%91%E3%82%92%E4%BD%9C%E3%82%8B\"><i class=\"fa fa-link\"></i></a>仕掛けを作る</h2>\n\n<h3>\n<span id=\"herokuのpostgesqlを使うための仕掛け\" class=\"fragment\"></span><a href=\"#heroku%E3%81%AEpostgesql%E3%82%92%E4%BD%BF%E3%81%86%E3%81%9F%E3%82%81%E3%81%AE%E4%BB%95%E6%8E%9B%E3%81%91\"><i class=\"fa fa-link\"></i></a>HerokuのPostgeSQLを使うための仕掛け</h3>\n\n<p>HerokuのPostgreSQLを使うためにデータベース設定を少しだけ細工する。<br><br>\nローカルでもHerokuでも動かせるためにHeroku用の<code>DataSourceFactory</code>を作る。</p>\n\n<div class=\"code-frame\" data-lang=\"text\"><div class=\"highlight\"><pre>public class HerokuDataSourceFactory {\n\n    private static Logger logger = LoggerFactory.getLogger(HerokuDataSourceFactory.class);\n\n    public static DataSourceFactory get(String databaseUrl){\n        logger.info(\"Creating DB for \" + Objects.requireNonNull(databaseUrl));\n        try {\n            URI dbUri = new URI(databaseUrl);\n            final String user = dbUri.getUserInfo().split(\":\")[0];\n            final String password = dbUri.getUserInfo().split(\":\")[1];\n            final String url = \"jdbc:postgresql://\" + dbUri.getHost() + ':' + dbUri.getPort() + dbUri.getPath()\n                    + \"?ssl=true&amp;sslfactory=org.postgresql.ssl.NonValidatingFactory\";\n            DatabaseConfiguration&lt;Configuration&gt; databaseConfiguration = new DatabaseConfiguration&lt;Configuration&gt;() {\n                @Override\n                public DataSourceFactory getDataSourceFactory(Configuration configuration) {\n                    //TODO 接続設定以外は設定ファイルから読みたい\n                    DataSourceFactory dsf = new DataSourceFactory();\n                    dsf.setUser(user);\n                    dsf.setPassword(password);\n                    dsf.setUrl(url);\n                    dsf.setDriverClass(\"org.postgresql.Driver\");\n                    dsf.setAutoCommitByDefault(false);\n                    return dsf;\n                }\n            };\n            return databaseConfiguration.getDataSourceFactory(null);\n        } catch (URISyntaxException e) {\n            logger.error(e.getMessage());\n            return null;\n        }\n    }\n}\n</pre></div></div>\n\n<p>続いて<code>Configuration</code>クラスに仕掛けする。</p>\n\n<div class=\"code-frame\" data-lang=\"text\"><div class=\"highlight\"><pre>    @Valid\n    @NotNull\n    @JsonProperty(\"database\")\n    private DataSourceFactory database = new DataSourceFactory();\n\n    public DataSourceFactory getDataSourceFactory() {\n        String databaseUrl = System.getenv(\"DATABASE_URL\");\n        if(databaseUrl == null){\n            logger.info(\"Standard DataSourceFactory url=\" + database.getUrl());\n            return database;\n        }\n        DataSourceFactory dsf = HerokuDataSourceFactory.get(databaseUrl);\n        logger.info(\"Heroku DataSourceFactory url=\" + dsf.getUrl());\n        return dsf;\n    }\n</pre></div></div>\n\n<p>これでローカルで実行するときは設定ファイルから、Heroku上で実行するときには<code>System.getenv(\"DATABASE_URL\")</code>で取得することができる。</p>\n\n<h3>\n<span id=\"herokuで実行するための仕掛け\" class=\"fragment\"></span><a href=\"#heroku%E3%81%A7%E5%AE%9F%E8%A1%8C%E3%81%99%E3%82%8B%E3%81%9F%E3%82%81%E3%81%AE%E4%BB%95%E6%8E%9B%E3%81%91\"><i class=\"fa fa-link\"></i></a>Herokuで実行するための仕掛け</h3>\n\n<p><code>Procfile</code>を作成する。</p>\n\n<div class=\"code-frame\" data-lang=\"text\"><div class=\"highlight\"><pre>web: java $JAVA_OPTS -jar target/dropwizard-app.jar db migrate dropwizard-app.yml &amp;&amp; java $JAVA_OPTS -Ddw.server.connector.port=$PORT -jar target/dropwizard-app.jar server dropwizard-app.yml\n</pre></div></div>\n\n<p>設定ファイルをsimpleサーバーモードで起動するようにする。</p>\n\n<div class=\"code-frame\" data-lang=\"text\"><div class=\"highlight\"><pre>server:\n  type: simple\n  applicationContextPath: /\n  connector:\n    type: http\n    port: 8080\n</pre></div></div>\n\n<h2>\n<span id=\"ローカルで動かしてみる\" class=\"fragment\"></span><a href=\"#%E3%83%AD%E3%83%BC%E3%82%AB%E3%83%AB%E3%81%A7%E5%8B%95%E3%81%8B%E3%81%97%E3%81%A6%E3%81%BF%E3%82%8B\"><i class=\"fa fa-link\"></i></a>ローカルで動かしてみる</h2>\n\n<div class=\"code-frame\" data-lang=\"text\"><div class=\"highlight\"><pre>mvn package\n</pre></div></div>\n\n<p><code>foreman</code>を使用して起動する。</p>\n\n<div class=\"code-frame\" data-lang=\"text\"><div class=\"highlight\"><pre>foreman start\n</pre></div></div>\n\n<p><code>http://localhost:5000</code>にアクセスして確認する。</p>\n\n<h2>\n<span id=\"herokuにデプロイしてみる\" class=\"fragment\"></span><a href=\"#heroku%E3%81%AB%E3%83%87%E3%83%97%E3%83%AD%E3%82%A4%E3%81%97%E3%81%A6%E3%81%BF%E3%82%8B\"><i class=\"fa fa-link\"></i></a>Herokuにデプロイしてみる</h2>\n\n<p>一応最初から。<br>\nプロジェクトルートをgitレポジトリ化してコミットする。</p>\n\n<div class=\"code-frame\" data-lang=\"text\"><div class=\"highlight\"><pre>git init\ngit add .\ngit commit -m \"Initial commit\"\n</pre></div></div>\n\n<p>Herokuアプリを作成。</p>\n\n<div class=\"code-frame\" data-lang=\"text\"><div class=\"highlight\"><pre>heroku create &lt;application name&gt;\n</pre></div></div>\n\n<p>PostgreSQLアドオンを追加。</p>\n\n<div class=\"code-frame\" data-lang=\"text\"><div class=\"highlight\"><pre>heroku addons:create heroku-postgresql:dev\n</pre></div></div>\n\n<p>Herokuにpushする。</p>\n\n<div class=\"code-frame\" data-lang=\"text\"><div class=\"highlight\"><pre>git push heroku master\n</pre></div></div>\n\n<p>アプリを開く。</p>\n\n<div class=\"code-frame\" data-lang=\"text\"><div class=\"highlight\"><pre>heroku open\n</pre></div></div>\n\n<p>問題なく稼働することが確認できました。</p>\n\n<p><a href=\"https://github.com/alexroussos/dropwizard-heroku-example\">参考</a></p>\n",
+        "body": "\n##仕掛けを作る\n###HerokuのPostgeSQLを使うための仕掛け\nHerokuのPostgreSQLを使うためにデータベース設定を少しだけ細工する。  \nローカルでもHerokuでも動かせるためにHeroku用の`DataSourceFactory`を作る。\n\n```\npublic class HerokuDataSourceFactory {\n\t\n\tprivate static Logger logger = LoggerFactory.getLogger(HerokuDataSourceFactory.class);\n\t\n\tpublic static DataSourceFactory get(String databaseUrl){\n\t\tlogger.info(\"Creating DB for \" + Objects.requireNonNull(databaseUrl));\n\t\ttry {\n\t\t\tURI dbUri = new URI(databaseUrl);\n\t\t\tfinal String user = dbUri.getUserInfo().split(\":\")[0];\n\t\t\tfinal String password = dbUri.getUserInfo().split(\":\")[1];\n\t\t\tfinal String url = \"jdbc:postgresql://\" + dbUri.getHost() + ':' + dbUri.getPort() + dbUri.getPath()\n\t\t\t\t\t+ \"?ssl=true&sslfactory=org.postgresql.ssl.NonValidatingFactory\";\n\t\t\tDatabaseConfiguration<Configuration> databaseConfiguration = new DatabaseConfiguration<Configuration>() {\n\t\t\t\t@Override\n\t\t\t\tpublic DataSourceFactory getDataSourceFactory(Configuration configuration) {\n\t\t\t\t\t//TODO 接続設定以外は設定ファイルから読みたい\n\t\t\t\t\tDataSourceFactory dsf = new DataSourceFactory();\n\t\t\t\t\tdsf.setUser(user);\n\t\t\t\t\tdsf.setPassword(password);\n\t\t\t\t\tdsf.setUrl(url);\n\t\t\t\t\tdsf.setDriverClass(\"org.postgresql.Driver\");\n\t\t\t\t\tdsf.setAutoCommitByDefault(false);\n\t\t\t\t\treturn dsf;\n\t\t\t\t}\n\t\t\t};\n\t\t\treturn databaseConfiguration.getDataSourceFactory(null);\n\t\t} catch (URISyntaxException e) {\n\t\t\tlogger.error(e.getMessage());\n\t\t\treturn null;\n\t\t}\n\t}\n}\n```\n\n続いて`Configuration`クラスに仕掛けする。\n\n```\n\t@Valid\n\t@NotNull\n\t@JsonProperty(\"database\")\n\tprivate DataSourceFactory database = new DataSourceFactory();\n\n\tpublic DataSourceFactory getDataSourceFactory() {\n\t\tString databaseUrl = System.getenv(\"DATABASE_URL\");\n\t\tif(databaseUrl == null){\n\t\t\tlogger.info(\"Standard DataSourceFactory url=\" + database.getUrl());\n\t\t\treturn database;\n\t\t}\n\t\tDataSourceFactory dsf = HerokuDataSourceFactory.get(databaseUrl);\n\t\tlogger.info(\"Heroku DataSourceFactory url=\" + dsf.getUrl());\n\t\treturn dsf;\n\t}\n```\n\nこれでローカルで実行するときは設定ファイルから、Heroku上で実行するときには`System.getenv(\"DATABASE_URL\")`で取得することができる。\n\n###Herokuで実行するための仕掛け\n`Procfile`を作成する。\n\n```\nweb: java $JAVA_OPTS -jar target/dropwizard-app.jar db migrate dropwizard-app.yml && java $JAVA_OPTS -Ddw.server.connector.port=$PORT -jar target/dropwizard-app.jar server dropwizard-app.yml\n```\n\n設定ファイルをsimpleサーバーモードで起動するようにする。\n\n```\nserver:\n  type: simple\n  applicationContextPath: /\n  connector:\n    type: http\n    port: 8080\n```\n\n##ローカルで動かしてみる\n\n```\nmvn package\n```\n\n`foreman`を使用して起動する。\n\n```\nforeman start\n```\n\n`http://localhost:5000`にアクセスして確認する。\n\n##Herokuにデプロイしてみる\n\n一応最初から。\nプロジェクトルートをgitレポジトリ化してコミットする。\n\n```\ngit init\ngit add .\ngit commit -m \"Initial commit\"\n```\n\nHerokuアプリを作成。\n\n```\nheroku create <application name>\n```\n\nPostgreSQLアドオンを追加。\n\n```\nheroku addons:create heroku-postgresql:dev\n```\n\nHerokuにpushする。\n\n```\ngit push heroku master\n```\n\nアプリを開く。\n\n```\nheroku open\n```\n\n問題なく稼働することが確認できました。\n\n[参考](https://github.com/alexroussos/dropwizard-heroku-example)\n",
+        "coediting": false,
+        "created_at": "2015-06-13T13:52:19+09:00",
+        "id": "75fed1b275a8c41261dc",
+        "private": false,
+        "tags": [
+            {
+                "name": "Java",
+                "versions": [
+                ]
+            },
+            {
+                "name": "Heroku",
+                "versions": [
+                ]
+            },
+            {
+                "name": "dropwizard",
+                "versions": [
+                ]
+            }
+        ],
+        "title": "Dropwizardで作ったアプリをHerokuにデプロイする",
+        "updated_at": "2015-06-13T13:52:19+09:00",
+        "url": "http://qiita.com/master-of-sugar/items/75fed1b275a8c41261dc",
+        "user": {
+            "description": "元トラックドライバー -> エンジニア\r\n\r\n基本的にはJavaの人ですが、何でもやります。\r\n基本的にはSIの人ですが、最近色々はじめてます。",
+            "facebook_id": "",
+            "followees_count": 1,
+            "followers_count": 0,
+            "github_login_name": "master-of-sugar",
+            "id": "master-of-sugar",
+            "items_count": 9,
+            "linkedin_id": "",
+            "location": "",
+            "name": "",
+            "organization": "",
+            "permanent_id": 10058,
+            "profile_image_url": "https://pbs.twimg.com/profile_images/608602939523911680/V0yOIpQk_normal.png",
+            "twitter_screen_name": "master_of_sugar",
+            "website_url": ""
+        }
+    }
+]

@@ -1,0 +1,34 @@
+{{<layout}}
+  {{$seo-meta}}
+    <meta name="keywords" content="Qiita,まとめ,matome-ta">
+    <meta name="description" content="まとめーたはQiitaの投稿をまとめるてブログを作るツールです">
+    <meta name="author" content="master-of-sugar">
+    <meta name="generator" content="まとめーた！！">
+    
+    <meta property="og:title" content="まとめーた！！">
+    <meta property="og:type" content="blog">
+    <meta property="og:description" content="まとめーたはQiitaの投稿をまとめるてブログを作るツールです">
+    <meta property="og:url" content="https://github.com/master-of-sugar/matome-ta">
+    <meta property="og:image" content="http://nex.fm/wp-content/uploads/2011/03/a0790_000107_m-300×200.jpg">
+    <meta property="og:site_name" content="まとめーた！！">
+    <meta property="og:email" content="info@facebookapps.jp">
+  {{/seo-meta}}
+  {{$content}}
+    {{#posts}}
+    <div class="row">
+      <div class="col-sm-12">
+        <h3 class="title"><a href="/post/{{id}}">{{title}}</a></h3>
+        <span class="glyphicon glyphicon-tag"></span>
+        {{#tags}}
+        <a href="/tag/{{name}}">
+        <span class="label label-success">{{name}}</span>
+        </a>
+        {{/tags}}
+        <p class="text-muted"><span class="glyphicon glyphicon-calendar"></span> {{updatedAt}}</p>
+        <p class="text-muted"><img style="width:32px" class="img-rounded" src="{{user.profileImageUrl}}" /> <a href="#">{{user.id}}</a></p>
+      </div>
+    </div>
+    <hr />
+    {{/posts}}
+  {{/content}}
+{{/layout}}

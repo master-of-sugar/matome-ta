@@ -1,0 +1,26 @@
+{{<layout}}
+  {{$seo-meta}}
+    <meta name="keywords" content="Qiita,まとめ,matome-ta">
+    <meta name="description" content="まとめーたはQiitaの投稿をまとめるてブログを作るツールです">
+    <meta name="author" content="master-of-sugar">
+    <meta name="generator" content="まとめーた！！">
+    
+    <meta property="og:title" content="{{post.title}}">
+    <meta property="og:type" content="article">
+    <meta property="og:description" content="{{post.title}}">
+    <meta property="og:url" content="https://github.com/master-of-sugar/matome-ta">
+    <meta property="og:image" content="http://nex.fm/wp-content/uploads/2011/03/a0790_000107_m-300×200.jpg">
+    <meta property="og:site_name" content="まとめーた！！">
+    <meta property="og:email" content="info@facebookapps.jp">
+  {{/seo-meta}}
+  {{$page-title}}
+    Tags-matome-Ta!!
+  {{/page-title}}
+  {{$content}}
+    {{#members}}
+    <div>
+      <img style="width:32px" class="img-rounded" src="{{profileImageUrl}}" /> <a href="#">{{id}}</a>
+    </div>
+    {{/members}}
+  {{/content}}
+{{/layout}}
