@@ -11,6 +11,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 
 import com.github.master_of_sugar.matome_ta.store.PostStore;
+import com.github.master_of_sugar.matome_ta.store.UserStore;
 import com.github.master_of_sugar.matome_ta.view.IndexView;
 import com.github.master_of_sugar.matome_ta.view.PostView;
 import com.github.master_of_sugar.matome_ta.view.TagsView;
@@ -22,9 +23,11 @@ import com.github.master_of_sugar.matome_ta.view.MembersView;
 public class ViewResource {
 	
 	private final PostStore store;
+	private final UserStore userStore;
 	
-	public ViewResource(PostStore store) {
+	public ViewResource(PostStore store,UserStore userStore) {
 		this.store = Objects.requireNonNull(store);
+		this.userStore = userStore;
 	}
 	
 	@GET
@@ -57,6 +60,6 @@ public class ViewResource {
 	@GET
 	@Path("members")
 	public MembersView members(){
-		return new MembersView(store.getUsers());
+		return new MembersView(userStore.getUsers());
 	}
 }

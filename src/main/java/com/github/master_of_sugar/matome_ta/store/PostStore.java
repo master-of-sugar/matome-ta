@@ -10,6 +10,8 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import org.bson.Document;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.github.master_of_sugar.matome_ta.model.Post;
 import com.github.master_of_sugar.matome_ta.model.Tag;
@@ -18,6 +20,8 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 
 public class PostStore {
+	private static Logger logger = LoggerFactory.getLogger(PostStore.class);
+	
 	private MongoDatabase database;
 	
 	public PostStore(MongoDatabase database) {
@@ -43,6 +47,15 @@ public class PostStore {
 		).map(this::map).collect(Collectors.toList());
 	}
 	
+	public void addOrUpdate(Document d){
+		//TODO update
+		if(!get(d.getString("id")).isPresent()){
+			logger.debug("Insert post {}",d.getString("id"));
+			MongoCollection<Document> col = database.getCollection("posts");
+			col.insertOne(d);
+		}
+	}
+	
 	public Optional<Post> get(String id){
 		MongoCollection<Document> col = database.getCollection("posts");
 		Document d = col.find(eq("id", id)).first();
@@ -57,21 +70,6 @@ public class PostStore {
 			col.distinct("tags.name", String.class).spliterator(),
 			false)
 			.map(s -> new Tag(s))
-			.collect(Collectors.toList());
-	}
-	
-	//TODO storeわける
-	public List<User> getUsers(){
-		MongoCollection<Document> col = database.getCollection("users");
-		return StreamSupport.stream(
-			col.find().spliterator(),
-			false)
-			.map(userdoc -> {
-				User u = new User();
-				u.setId(userdoc.getString("id"));
-				u.setProfileImageUrl(userdoc.getString("profile_image_url"));
-				return u;
-			})
 			.collect(Collectors.toList());
 	}
 

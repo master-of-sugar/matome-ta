@@ -5,6 +5,8 @@ import java.text.SimpleDateFormat;
 import com.github.master_of_sugar.matome_ta.resource.ManageResource;
 import com.github.master_of_sugar.matome_ta.resource.ViewResource;
 import com.github.master_of_sugar.matome_ta.store.PostStore;
+import com.github.master_of_sugar.matome_ta.store.UserStore;
+import com.mongodb.client.MongoDatabase;
 
 import io.dropwizard.Application;
 import io.dropwizard.java8.Java8Bundle;
@@ -45,9 +47,10 @@ public class MatometaApplication extends Application<MatometaConfiguration>{
 		// ルートではhtmlとかを返したいのでなんとなく
 		//environment.jersey().setUrlPattern("/api/*");
 		
+		MongoDatabase db = configuration.getMongoClientFactory().getMongoDatabase();
 		// add resource
-		environment.jersey().register(new ManageResource());
-		environment.jersey().register(new ViewResource(new PostStore(configuration.getMongoClientFactory().getMongoDatabase())));
+		environment.jersey().register(new ManageResource(new UserStore(db),new PostStore(db)));
+		environment.jersey().register(new ViewResource(new PostStore(db),new UserStore(db)));
 		
 		// add security
 		//environment.jersey().register(AuthFactory.binder(new OAuthFactory<>(new ExampleAuthenticator(), "realm", String.class)));
