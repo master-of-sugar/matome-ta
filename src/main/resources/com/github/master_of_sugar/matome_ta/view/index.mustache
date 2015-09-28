@@ -18,12 +18,14 @@
     <div class="row">
       <div class="col-sm-12">
         <h3 class="title"><a href="/post/{{id}}">{{title}}</a></h3>
-        <span class="glyphicon glyphicon-tag"></span>
-        {{#tags}}
-        <a href="/tag/{{name}}">
-        <span class="label label-success">{{name}}</span>
-        </a>
-        {{/tags}}
+        <div class="tag-box">
+          <span style="vertical-align:middle;" class="glyphicon glyphicon-tag"></span>
+          {{#tags}}
+            <a href="/tag/{{name}}">
+            <span class="label label-success">{{name}}</span>
+            </a>
+          {{/tags}}
+        </div>
         <p class="text-muted"><span class="glyphicon glyphicon-calendar"></span> {{updatedAt}}</p>
         <p class="text-muted"><img style="width:32px" class="img-rounded" src="{{user.profileImageUrl}}" /> <a href="#">{{user.id}}</a></p>
       </div>

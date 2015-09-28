@@ -9,6 +9,7 @@ import com.github.master_of_sugar.matome_ta.store.UserStore;
 import com.mongodb.client.MongoDatabase;
 
 import io.dropwizard.Application;
+import io.dropwizard.assets.AssetsBundle;
 import io.dropwizard.java8.Java8Bundle;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
@@ -34,7 +35,7 @@ public class MatometaApplication extends Application<MatometaConfiguration>{
 		bootstrap.addBundle(new ViewBundle<>());
 
 		//for Static content
-		//bootstrap.addBundle(new AssetsBundle("/assets/","/","index.html","/"));
+		bootstrap.addBundle(new AssetsBundle("/assets/css","/assets/css","index.html","/assets/css"));
 	}
 
 	@Override
