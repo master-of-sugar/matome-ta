@@ -51,7 +51,7 @@ public class MatometaApplication extends Application<MatometaConfiguration>{
 		MongoDatabase db = configuration.getMongoClientFactory().getMongoDatabase();
 		// add resource
 		environment.jersey().register(new ManageResource(new UserStore(db),new PostStore(db)));
-		environment.jersey().register(new ViewResource(new PostStore(db),new UserStore(db)));
+		environment.jersey().register(new ViewResource(new UserStore(db),new PostStore(db)));
 		
 		// add security
 		//environment.jersey().register(AuthFactory.binder(new OAuthFactory<>(new ExampleAuthenticator(), "realm", String.class)));

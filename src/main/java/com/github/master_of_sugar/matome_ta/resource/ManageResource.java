@@ -1,6 +1,5 @@
 package com.github.master_of_sugar.matome_ta.resource;
 
-import java.io.IOException;
 import java.util.stream.StreamSupport;
 
 import javax.ws.rs.PUT;
@@ -14,6 +13,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.bson.Document;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -24,6 +25,8 @@ import com.github.master_of_sugar.matome_ta.store.UserStore;
 @Path("manage")
 @Produces(MediaType.APPLICATION_JSON + "; charset=UTF-8")
 public class ManageResource {
+	
+	private static Logger logger = LoggerFactory.getLogger(ManageResource.class);
 	
 	private final UserStore userStore;
 	private final PostStore postStore;
@@ -63,10 +66,9 @@ public class ManageResource {
 			StreamSupport.stream(n.spliterator(), false)
 				.map(node -> Document.parse(node.toString()))
 				.forEach(postStore::addOrUpdate);
-			
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		} catch (Exception e) {
+			logger.error("Error!!",e);
+			return Response.serverError().build();
 		}
 		
 		return Response.noContent().build();

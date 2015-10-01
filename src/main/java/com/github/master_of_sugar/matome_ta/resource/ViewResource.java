@@ -22,17 +22,17 @@ import com.github.master_of_sugar.matome_ta.view.MembersView;
 @Produces(MediaType.TEXT_HTML + "; charset=UTF-8")
 public class ViewResource {
 	
-	private final PostStore store;
 	private final UserStore userStore;
+	private final PostStore postStore;
 	
-	public ViewResource(PostStore store,UserStore userStore) {
-		this.store = Objects.requireNonNull(store);
+	public ViewResource(UserStore userStore,PostStore postStore) {
+		this.postStore = Objects.requireNonNull(postStore);
 		this.userStore = userStore;
 	}
 	
 	@GET
 	public IndexView index(){
-		return new IndexView(store.getNewer());
+		return new IndexView(postStore.getNewer());
 	}
 	
 	@GET
@@ -40,7 +40,7 @@ public class ViewResource {
 	public PostView post(
 		@PathParam("id") String id
 	){
-		return new PostView(store.get(id).orElseThrow(()-> new WebApplicationException(Status.NOT_FOUND)));
+		return new PostView(postStore.get(id).orElseThrow(()-> new WebApplicationException(Status.NOT_FOUND)));
 	}
 	
 	@GET
@@ -48,18 +48,26 @@ public class ViewResource {
 	public IndexView tag(
 		@PathParam("name") String name
 	){
-		return new IndexView(store.findByTag(name));
+		return new IndexView(postStore.findByTag(name));
 	}
 	
 	@GET
 	@Path("tags")
 	public TagsView tags(){
-		return new TagsView(store.getTags());
+		return new TagsView(postStore.getTags());
 	}
 	
 	@GET
 	@Path("members")
 	public MembersView members(){
 		return new MembersView(userStore.getUsers());
+	}
+	
+	@GET
+	@Path("posts/{userId}")
+	public IndexView posts(
+		@PathParam("userId") String userId
+	){
+		return new IndexView(postStore.findByUserId(userId));
 	}
 }

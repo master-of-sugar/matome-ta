@@ -18,7 +18,7 @@
   {{/page-title}}
   {{$content}}
     <div class="page-header">
-      <h1>{{post.title}} <small>{{post.id}}</small></h1>
+      <h1>{{post.title}} <small>{{post.updatedAt}}</small></h1>
       
       <div class="social-btn-box">
         <div class="social-btn social-btn-twitter">
@@ -40,7 +40,7 @@
         {{/post.tags}}
       </div>
     </div>
-    <span class="glyphicon glyphicon-time"></span> Posted on {{post.updatedAt}}
+    <p class="text-muted"><img style="width:32px" class="img-rounded" src="{{post.user.profileImageUrl}}" /> <a href="/posts/{{post.user.id}}">{{post.user.id}}</a></p>
     <hr />
     <div class="post-body">
     {{{post.renderedBody}}}

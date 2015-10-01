@@ -47,6 +47,15 @@ public class PostStore {
 		).map(this::map).collect(Collectors.toList());
 	}
 	
+	public List<Post> findByUserId(String userId){
+		MongoCollection<Document> col = database.getCollection("posts");
+		
+		return StreamSupport.stream(
+			col.find(eq("user.id", Objects.requireNonNull(userId))).sort(descending("updated_at")).spliterator(),
+			false
+		).map(this::map).collect(Collectors.toList());
+	}
+	
 	public void addOrUpdate(Document d){
 		//TODO update
 		if(!get(d.getString("id")).isPresent()){
