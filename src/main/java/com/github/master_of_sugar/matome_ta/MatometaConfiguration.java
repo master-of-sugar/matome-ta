@@ -7,6 +7,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.mongodb.MongoClient;
+import com.mongodb.MongoClientURI;
+import com.mongodb.client.MongoDatabase;
 
 import io.dropwizard.Configuration;
 import io.dropwizard.db.DataSourceFactory;
@@ -37,6 +40,22 @@ public class MatometaConfiguration extends Configuration{
 	}
 	
 	public MongoClientFactory getMongoClientFactory(){
-		return mongo;
+		String mongolabUri = System.getenv("MONGOLAB_URI");
+		if(mongolabUri == null){
+			logger.info("Standard MongoFactory");
+			return mongo;
+		}
+		logger.info("Heroku");
+
+		return new MongoClientFactory(){
+
+			@Override
+			public MongoDatabase getMongoDatabase() {
+				MongoClientURI uri = new MongoClientURI(mongolabUri);
+				@SuppressWarnings("resource")
+				MongoClient client = new MongoClient(uri);
+				return client.getDatabase(getDatabase());
+			}
+		};
 	}
 }
