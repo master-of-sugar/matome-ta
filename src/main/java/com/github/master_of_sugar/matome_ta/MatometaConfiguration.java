@@ -54,7 +54,8 @@ public class MatometaConfiguration extends Configuration{
 				MongoClientURI uri = new MongoClientURI(mongolabUri);
 				@SuppressWarnings("resource")
 				MongoClient client = new MongoClient(uri);
-				return client.getDatabase(getDatabase());
+				//TODO 
+				return client.getDatabase("heroku_3hsjk63w");
 			}
 		};
 	}
