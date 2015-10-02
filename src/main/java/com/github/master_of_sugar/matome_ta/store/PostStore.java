@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import com.github.master_of_sugar.matome_ta.model.Post;
 import com.github.master_of_sugar.matome_ta.model.Tag;
 import com.github.master_of_sugar.matome_ta.model.User;
+import com.github.master_of_sugar.matome_ta.view.Pager;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 
@@ -28,12 +29,21 @@ public class PostStore {
 		this.database = Objects.requireNonNull(database);
 	}
 	
-	public List<Post> getNewer(){
+	public long count(){
+		MongoCollection<Document> col = database.getCollection("posts");
+		return col.count();
+	}
+	
+	public List<Post> getNewer(Optional<Integer> page){
 		
 		MongoCollection<Document> col = database.getCollection("posts");
 		
 		return StreamSupport.stream(
-			col.find().sort(descending("updated_at")).spliterator(),
+			col
+				.find()
+				.skip((page.orElse(1)-1) * Pager.LIMIT_LIST_COUNT)
+				.limit(Pager.LIMIT_LIST_COUNT)
+				.sort(descending("updated_at")).spliterator(),
 			false
 		).map(this::map).collect(Collectors.toList());
 	}
@@ -57,11 +67,23 @@ public class PostStore {
 	}
 	
 	public void addOrUpdate(Document d){
-		//TODO update
-		if(!get(d.getString("id")).isPresent()){
+		Optional<Post> postOp = get(d.getString("id"));
+		if(!postOp.isPresent()){
 			logger.debug("Insert post {}",d.getString("id"));
 			MongoCollection<Document> col = database.getCollection("posts");
 			col.insertOne(d);
+		}else{
+			//update
+			Post p = postOp.get();
+			String oldDate = p.getUpdatedAt();
+			String newDate = d.getString("updated_at");
+			if(!oldDate.equals(newDate)){
+				//delete and insert
+				logger.debug("Update post {}",d.getString("id"));
+				MongoCollection<Document> col = database.getCollection("posts");
+				col.deleteOne(new Document("id", p.getId()));
+				col.insertOne(d);
+			}
 		}
 	}
 	

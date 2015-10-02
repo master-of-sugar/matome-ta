@@ -1,11 +1,13 @@
 package com.github.master_of_sugar.matome_ta.resource;
 
 import java.util.Objects;
+import java.util.Optional;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
@@ -31,8 +33,14 @@ public class ViewResource {
 	}
 	
 	@GET
-	public IndexView index(){
-		return new IndexView(postStore.getNewer());
+	public IndexView index(
+		@QueryParam("page") Optional<Integer> page
+	){
+		return new IndexView(
+			page.orElse(1),
+			postStore.count(),
+			postStore.getNewer(page)
+		);
 	}
 	
 	@GET
@@ -48,7 +56,7 @@ public class ViewResource {
 	public IndexView tag(
 		@PathParam("name") String name
 	){
-		return new IndexView(postStore.findByTag(name));
+		return new IndexView(1,1,postStore.findByTag(name));
 	}
 	
 	@GET
@@ -68,6 +76,6 @@ public class ViewResource {
 	public IndexView posts(
 		@PathParam("userId") String userId
 	){
-		return new IndexView(postStore.findByUserId(userId));
+		return new IndexView(1,1,postStore.findByUserId(userId));
 	}
 }

@@ -3,6 +3,7 @@ package com.github.master_of_sugar.matome_ta.model;
 public class User {
 	private String id;
 	private String profileImageUrl;
+	private String postUpdated;
 	public String getId() {
 		return id;
 	}
@@ -14,5 +15,11 @@ public class User {
 	}
 	public void setProfileImageUrl(String profileImageUrl) {
 		this.profileImageUrl = profileImageUrl;
+	}
+	public String getPostUpdated() {
+		return postUpdated;
+	}
+	public void setPostUpdated(String postUpdated) {
+		this.postUpdated = postUpdated;
 	}
 }

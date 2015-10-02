@@ -10,7 +10,9 @@ import com.mongodb.client.MongoDatabase;
 
 import io.dropwizard.Application;
 import io.dropwizard.assets.AssetsBundle;
+import io.dropwizard.java8.auth.oauth.OAuthFactory;
 import io.dropwizard.java8.Java8Bundle;
+import io.dropwizard.java8.auth.AuthFactory;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import io.dropwizard.views.ViewBundle;
@@ -36,6 +38,7 @@ public class MatometaApplication extends Application<MatometaConfiguration>{
 
 		//for Static content
 		bootstrap.addBundle(new AssetsBundle("/assets/css","/assets/css","index.html","/assets/css"));
+		bootstrap.addBundle(new AssetsBundle("/assets/img","/assets/img","index.html","/assets/img"));
 	}
 
 	@Override
@@ -54,7 +57,7 @@ public class MatometaApplication extends Application<MatometaConfiguration>{
 		environment.jersey().register(new ViewResource(new UserStore(db),new PostStore(db)));
 		
 		// add security
-		//environment.jersey().register(AuthFactory.binder(new OAuthFactory<>(new ExampleAuthenticator(), "realm", String.class)));
+		environment.jersey().register(AuthFactory.binder(new OAuthFactory<>(new MatometaAuthenticator(configuration.getManageToken()), "realm", String.class)));
 		
 		// add ExceptionMapper
 		environment.jersey().register(new ExampleExceptionMapper());

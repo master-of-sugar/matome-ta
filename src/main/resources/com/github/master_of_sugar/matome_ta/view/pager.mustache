@@ -1,0 +1,44 @@
+{{#pager}}
+  <nav style="text-align:center;">
+    <ul class="pagination">
+      {{#hasPrevPage}}
+      <li>
+        <a href="?page={{prevPage}}" aria-label="Previous">
+          <span aria-hidden="true">&laquo;</span>
+        </a>
+      </li>
+      {{/hasPrevPage}}
+      {{^hasPrevPage}}
+      <li class="disabled">
+        <a href="#" aria-label="Previous">
+          <span aria-hidden="true">&laquo;</span>
+        </a>
+      </li>
+      {{/hasPrevPage}}
+      
+      {{#pages}}
+        {{#active}}
+        <li class="active"><a href="?page={{number}}">{{number}}</a></li>
+        {{/active}}
+        {{^active}}
+        <li><a href="?page={{number}}">{{number}}</a></li>
+        {{/active}}
+      {{/pages}}
+
+      {{#hasNextPage}}
+      <li>
+        <a href="?page={{nextPage}}" aria-label="Next">
+          <span aria-hidden="true">&raquo;</span>
+        </a>
+      </li>
+      {{/hasNextPage}}
+      {{^hasNextPage}}
+      <li class="disabled">
+        <a href="#" aria-label="Next">
+          <span aria-hidden="true">&raquo;</span>
+        </a>
+      </li>
+      {{/hasNextPage}}
+    </ul>
+  </nav>
+{{/pager}}

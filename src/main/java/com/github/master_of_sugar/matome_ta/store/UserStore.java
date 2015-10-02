@@ -33,6 +33,18 @@ public class UserStore {
 		}
 	}
 	
+	public void update(String id,String name,String value){
+		if(!isPresent(id)){
+			return;
+		}
+		MongoCollection<Document> col = database.getCollection("users");
+		col.updateOne(new Document("id",id), new Document("$set",new Document(name, value)));
+	}
+	
+	public boolean isPresent(String id){
+		return get(id).isPresent();
+	}
+	
 	public Optional<User> get(String id){
 		MongoCollection<Document> col = database.getCollection("users");
 		Document d = col.find(eq("id", id)).first();
@@ -49,6 +61,7 @@ public class UserStore {
 				User u = new User();
 				u.setId(userdoc.getString("id"));
 				u.setProfileImageUrl(userdoc.getString("profile_image_url"));
+				u.setPostUpdated(userdoc.getString("post_updated"));
 				return u;
 			})
 			.collect(Collectors.toList());
@@ -62,6 +75,7 @@ public class UserStore {
 		User u = new User();
 		u.setId(d.getString("id"));
 		u.setProfileImageUrl(d.getString("profile_image_url"));
+		u.setPostUpdated(d.getString("post_updated"));
 		
 		return u;
 	}

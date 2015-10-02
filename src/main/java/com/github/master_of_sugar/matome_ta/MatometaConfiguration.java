@@ -7,9 +7,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.mongodb.MongoClient;
-import com.mongodb.MongoClientURI;
-import com.mongodb.client.MongoDatabase;
 
 import io.dropwizard.Configuration;
 import io.dropwizard.db.DataSourceFactory;
@@ -17,6 +14,10 @@ import io.dropwizard.db.DataSourceFactory;
 public class MatometaConfiguration extends Configuration{
 	
 	private static Logger logger = LoggerFactory.getLogger(MatometaConfiguration.class);
+	
+	@NotNull
+	@JsonProperty
+	private String manageToken;
 	
 	@Valid
 	@NotNull
@@ -27,6 +28,10 @@ public class MatometaConfiguration extends Configuration{
 	@NotNull
 	@JsonProperty("mongo")
 	private MongoClientFactory mongo = new MongoClientFactory();
+	
+	public String getManageToken(){
+		return this.manageToken;
+	}
 
 	public DataSourceFactory getDataSourceFactory() {
 		String databaseUrl = System.getenv("DATABASE_URL");
@@ -45,18 +50,8 @@ public class MatometaConfiguration extends Configuration{
 			logger.info("Standard MongoFactory");
 			return mongo;
 		}
-		logger.info("Heroku");
+		logger.info("Heroku URI:{}",mongolabUri);
 
-		return new MongoClientFactory(){
-
-			@Override
-			public MongoDatabase getMongoDatabase() {
-				MongoClientURI uri = new MongoClientURI(mongolabUri);
-				@SuppressWarnings("resource")
-				MongoClient client = new MongoClient(uri);
-				//TODO 
-				return client.getDatabase("heroku_3hsjk63w");
-			}
-		};
+		return new MongoClientFactory(mongolabUri);
 	}
 }

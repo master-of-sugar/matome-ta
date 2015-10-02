@@ -1,5 +1,6 @@
 package com.github.master_of_sugar.matome_ta.resource;
 
+import java.time.LocalDate;
 import java.util.stream.StreamSupport;
 
 import javax.ws.rs.PUT;
@@ -18,8 +19,11 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.master_of_sugar.matome_ta.model.User;
 import com.github.master_of_sugar.matome_ta.store.PostStore;
 import com.github.master_of_sugar.matome_ta.store.UserStore;
+
+import io.dropwizard.auth.Auth;
 
 
 @Path("manage")
@@ -39,9 +43,10 @@ public class ManageResource {
 	@PUT
 	@Path("{id}")
 	public Response manage(
+		@Auth String ok,
 		@PathParam("id") String id
 	){
-		if(!userStore.get(id).isPresent()){
+		if(!userStore.isPresent(id)){
 			Client client = ClientBuilder.newClient();
 			WebTarget target = client
 				.target("https://qiita.com/api/v2/")
@@ -49,16 +54,20 @@ public class ManageResource {
 			
 			String response = target.request().get(String.class);
 			Document d = Document.parse(response);
+			d.put("post_updated", "2000-01-01");
 			userStore.add(d);
 		}
+		
+		User u = userStore.get(id).get();
 		
 		Client client = ClientBuilder.newClient();
 		WebTarget target = client
 			.target("https://qiita.com/api/v2/")
 			.path("items")
 			.queryParam("per_page", 100)
-			//TODO 最終更新日以降のものを検索する
-			.queryParam("query", "user:" + id);
+			.queryParam("query", "user:" + id + " updated:>" + u.getPostUpdated());
+		
+		logger.debug("Access API {}",target.toString());
 		
 		ObjectMapper mapper = new ObjectMapper();
 		try {
@@ -70,6 +79,8 @@ public class ManageResource {
 			logger.error("Error!!",e);
 			return Response.serverError().build();
 		}
+		
+		userStore.update(u.getId(), "post_updated", LocalDate.now().toString());
 		
 		return Response.noContent().build();
 	}

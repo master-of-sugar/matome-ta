@@ -5,45 +5,37 @@ import javax.validation.constraints.NotNull;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mongodb.MongoClient;
+import com.mongodb.MongoClientURI;
 import com.mongodb.client.MongoDatabase;
 
 public class MongoClientFactory {
 	@JsonProperty
 	@NotNull
-	private String host = "localhost";
-	@JsonProperty
-	@NotNull
-	private Integer port = 27017;
-	@JsonProperty
-	@NotNull
-	private String database;
-	
+	private String uri;
+
 	@JsonIgnore
 	private MongoClient mongoClient;
 	
-	public String getHost() {
-		return host;
-	}
-	public void setHost(String host) {
-		this.host = host;
-	}
-	public Integer getPort() {
-		return port;
-	}
-	public void setPort(Integer port) {
-		this.port = port;
-	}
-	public String getDatabase() {
-		return database;
-	}
-	public void setDatabase(String database) {
-		this.database = database;
+	public MongoClientFactory() {
 	}
 	
+	public MongoClientFactory(String uri){
+		this.uri = uri;
+	}
+	
+	public String getUri() {
+		return uri;
+	}
+
+	public void setUri(String uri) {
+		this.uri = uri;
+	}
+
 	public MongoDatabase getMongoDatabase(){
+		MongoClientURI clientUri = new MongoClientURI(uri);
 		if(mongoClient == null){
-			mongoClient = new MongoClient(host,port);
+			mongoClient = new MongoClient(clientUri);
 		}
-		return mongoClient.getDatabase(database);
+		return mongoClient.getDatabase(clientUri.getDatabase());
 	}
 }
